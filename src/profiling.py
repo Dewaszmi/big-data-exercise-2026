@@ -1,4 +1,3 @@
-"""Data profiling utilities using DuckDB in-process SQL OLAP engine."""
 from typing import Dict, Any, Optional
 from pathlib import Path
 import duckdb
@@ -6,21 +5,10 @@ import pandas as pd
 
 
 def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
-    """Create and return an in-process DuckDB connection."""
     return duckdb.connect(database=":memory:")
 
 
 def get_schema_description(file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pd.DataFrame:
-    """
-    Inspect the schema of a file using DuckDB without loading full data into memory.
-    
-    Args:
-        file_path: Path to Parquet or CSV file.
-        con: Optional DuckDB connection.
-        
-    Returns:
-        DataFrame containing column names, types, nullability, etc.
-    """
     if con is None:
         con = get_duckdb_connection()
     query = f"DESCRIBE SELECT * FROM '{file_path}'"
@@ -28,21 +16,12 @@ def get_schema_description(file_path: str, con: Optional[duckdb.DuckDBPyConnecti
 
 
 def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> Dict[str, pd.DataFrame]:
-    """
-    Execute comprehensive analytical profiling queries for the BTS Airline Delay dataset.
-    
-    Args:
-        file_path: Path to the Airline Delay CSV/Parquet file.
-        con: Optional DuckDB connection.
-        
-    Returns:
-        Dictionary of DataFrames with profiling results.
-    """
     if con is None:
         con = get_duckdb_connection()
         
-    # 1. Volume and Null Profile
-    null_sql = f"""
+    con.execute(f"CREATE OR REPLACE TEMP VIEW bts_source AS SELECT * FROM '{file_path}'")
+        
+    null_sql = """
     SELECT
         COUNT(*) AS total_rows,
         COUNT(*) - COUNT(year) AS null_year,
@@ -57,13 +36,12 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         COUNT(*) - COUNT(arr_cancelled) AS null_arr_cancelled,
         COUNT(*) - COUNT(arr_diverted) AS null_arr_diverted,
         COUNT(*) - COUNT(arr_delay) AS null_arr_delay
-    FROM '{file_path}'
+    FROM bts_source
     """
     df_nulls = con.execute(null_sql).df().T.reset_index()
     df_nulls.columns = ["metric", "value"]
     
-    # 2. Extreme Values and Descriptive Statistics
-    stats_sql = f"""
+    stats_sql = """
     SELECT
         MIN(year) AS min_year, MAX(year) AS max_year,
         MIN(month) AS min_month, MAX(month) AS max_month,
@@ -74,12 +52,11 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         MIN(arr_cancelled) AS min_arr_cancelled, MAX(arr_cancelled) AS max_arr_cancelled,
         MIN(arr_delay) AS min_arr_delay, MAX(arr_delay) AS max_arr_delay,
         ROUND(AVG(arr_delay), 2) AS avg_arr_delay
-    FROM '{file_path}'
+    FROM bts_source
     """
     df_stats = con.execute(stats_sql).df()
 
-    # 3. Anomaly and Inconsistency Audit
-    anomaly_sql = f"""
+    anomaly_sql = """
     SELECT
         COUNT(*) FILTER (WHERE arr_flights <= 0) AS zero_or_negative_flights,
         COUNT(*) FILTER (WHERE arr_del15 > arr_flights) AS delayed_exceeds_total_flights,
@@ -88,7 +65,7 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         COUNT(*) FILTER (WHERE ABS(arr_delay - (carrier_delay + weather_delay + nas_delay + security_delay + late_aircraft_delay)) > 1) AS delay_components_sum_mismatch,
         COUNT(*) FILTER (WHERE carrier_ct > 0 AND carrier_ct != ROUND(carrier_ct)) AS fractional_carrier_counts,
         COUNT(*) FILTER (WHERE arr_cancelled = arr_flights AND arr_flights > 0) AS all_flights_cancelled_records
-    FROM '{file_path}'
+    FROM bts_source
     """
     df_anomalies = con.execute(anomaly_sql).df().T.reset_index()
     df_anomalies.columns = ["anomaly_type", "detected_count"]
@@ -98,3 +75,67 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         "descriptive_stats": df_stats,
         "anomalies": df_anomalies,
     }
+
+
+def save_profiling_results_to_txt(file_path: str, output_txt_path: Optional[str] = None, con: Optional[duckdb.DuckDBPyConnection] = None) -> str:
+    if con is None:
+        con = get_duckdb_connection()
+    if output_txt_path is None:
+        from src.config import PROFILING_TXT_PATH
+        output_txt_path = str(PROFILING_TXT_PATH)
+        
+    profiles = profile_bts_flight_delays(file_path, con=con)
+    
+    top_airports_query = """
+    SELECT 
+        airport,
+        airport_name,
+        SUM(arr_flights) AS total_flights,
+        SUM(arr_del15) AS total_delayed_flights,
+        ROUND(SUM(arr_del15) * 100.0 / NULLIF(SUM(arr_flights), 0), 2) AS delay_percentage,
+        ROUND(SUM(arr_delay) / 60.0 / 1000.0, 1) AS total_delay_thousands_of_hours
+    FROM bts_source
+    WHERE arr_flights > 0
+    GROUP BY airport, airport_name
+    HAVING SUM(arr_flights) > 1000000
+    ORDER BY delay_percentage DESC
+    LIMIT 10
+    """
+    df_top_airports = con.execute(top_airports_query).df()
+
+    causes_query = """
+    SELECT
+        ROUND(SUM(carrier_delay) / 60.0 / 1000.0, 1) AS carrier_hours_k,
+        ROUND(SUM(weather_delay) / 60.0 / 1000.0, 1) AS weather_hours_k,
+        ROUND(SUM(nas_delay) / 60.0 / 1000.0, 1) AS nas_hours_k,
+        ROUND(SUM(security_delay) / 60.0 / 1000.0, 1) AS security_hours_k,
+        ROUND(SUM(late_aircraft_delay) / 60.0 / 1000.0, 1) AS late_aircraft_hours_k
+    FROM bts_source
+    """
+    df_causes = con.execute(causes_query).df()
+    
+    lines = [
+        profiles["null_profile"].to_string(index=False),
+        "",
+        profiles["descriptive_stats"].T.to_string(),
+        "",
+        profiles["anomalies"].to_string(index=False),
+        "",
+        df_top_airports.to_string(index=False),
+        "",
+        df_causes.to_string(index=False),
+    ]
+    
+    content = "\n".join(lines) + "\n"
+    Path(output_txt_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(output_txt_path, "w", encoding="utf-8") as f:
+        f.write(content)
+        
+    return output_txt_path
+
+
+if __name__ == "__main__":
+    from src.config import BTS_CSV_PATH, PROFILING_TXT_PATH
+    save_profiling_results_to_txt(str(BTS_CSV_PATH), str(PROFILING_TXT_PATH))
+
+

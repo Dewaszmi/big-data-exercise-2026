@@ -1,11 +1,9 @@
-"""Data ingestion and download script for the BTS Flight Delays dataset."""
 import shutil
 from pathlib import Path
 import kagglehub
 from src.config import RAW_DATA_DIR, BTS_CSV_PATH
 
 def download_bts_dataset() -> Path:
-    """Download the BTS Airline Delay Causes dataset via KaggleHub."""
     print("Fetching BTS Airline Delay dataset from Kaggle...")
     path = kagglehub.dataset_download("daryaheyko/airline-on-time-statistics-and-delay-causes-bts")
     print(f"Downloaded to cache: {path}")

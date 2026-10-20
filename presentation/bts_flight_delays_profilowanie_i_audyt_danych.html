@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTS Flight Delays — Profilowanie i Audyt Danych (Milestone 1)</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(31, 41, 55, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(59, 130, 246, 0.3);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #6366f1;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-emerald: #10b981;
+      --accent-purple: #a855f7;
+      --shadow-glow: 0 0 25px rgba(59, 130, 246, 0.15);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html.light {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-card-hover: rgba(241, 245, 249, 0.95);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --border-highlight: rgba(37, 99, 235, 0.3);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-blue: #2563eb;
+      --accent-cyan: #0891b2;
+      --accent-indigo: #4f46e5;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-emerald: #059669;
+      --accent-purple: #9333ea;
+      --shadow-glow: 0 10px 25px rgba(37, 99, 235, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Top Navigation Header */
+    header {
+      height: 64px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+      color: #ffffff;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+      color: white;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Main Container & Layout */
+    main {
+      margin-top: 64px;
+      margin-bottom: 40px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .slides-wrapper {
+      width: 100%;
+      max-width: 1320px;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .slide-subtitle {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-blue);
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .slide-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    /* Modern Grid & Tile Layout */
+    .grid-layout {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: repeat(12, 1fr);
+    }
+
+    .tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(16px);
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile:hover {
+      border-color: var(--border-highlight);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .tile-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tile-title .icon {
+      color: var(--accent-blue);
+    }
+
+    /* Typography & Components inside Tiles */
+    p.text-body {
+      font-size: 0.925rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1;
+      margin: 0.5rem 0;
+      color: var(--text-main);
+      background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+    .tag-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+    .tag-rose { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+    .tag-emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+    .tag-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+
+    /* Tables */
+    .data-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    table.data-table th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.75rem 1rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    table.data-table td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    table.data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.data-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Custom List styling */
+    .custom-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .custom-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .custom-list li strong {
+      color: var(--text-main);
+    }
+
+    .bullet-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      margin-top: 0.45rem;
+      flex-shrink: 0;
+    }
+
+    /* Chart Containers */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    /* Timeline / Lifecycle Steps */
+    .lifecycle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .step-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      padding: 1.25rem;
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .step-number {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .step-card.active-step {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    /* Grid Overview Modal */
+    .overview-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 15, 25, 0.92);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: none;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .overview-overlay.active {
+      display: block;
+    }
+
+    .overview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1320px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .overview-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .overview-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-3px);
+    }
+
+    .overview-card-number {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .overview-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Progress bar */
+    .progress-bar-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 50;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+      width: 11.11%;
+      transition: width 0.3s ease;
+    }
+
+    /* Utilities */
+    .col-12 { grid-column: span 12; }
+    .col-8 { grid-column: span 8; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .col-3 { grid-column: span 3; }
+
+    @media (max-width: 1024px) {
+      .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
+      .slide-title { font-size: 1.6rem; }
+    }
+
+    /* Print & Export PDF Styling */
+    @media print {
+      header, .progress-bar-container, .nav-controls {
+        display: none !important;
+      }
+
+      body {
+        background: white !important;
+        color: black !important;
+      }
+
+      main {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+
+      .slide {
+        display: block !important;
+        page-break-after: always;
+        break-after: page;
+        opacity: 1 !important;
+        transform: none !important;
+        padding: 2rem 0;
+      }
+
+      .tile {
+        background: white !important;
+        color: black !important;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+      }
+
+      .metric-value {
+        -webkit-text-fill-color: #000 !important;
+        color: #000 !important;
+      }
+
+      p.text-body, .custom-list li, table.data-table td {
+        color: #333 !important;
+      }
+
+      table.data-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="brand">
+      <span class="brand-badge">Milestone 1</span>
+      <span>BTS Flight Delays Engine</span>
+    </div>
+    
+    <div class="nav-controls">
+      <button class="btn" id="btn-overview" title="Przegląd slajdów (Grid)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        Siatka
+      </button>
+
+      <button class="btn" id="btn-theme" title="Przełącz tryb jasny/ciemny">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+      </button>
+
+      <button class="btn" onclick="window.print()" title="Eksportuj do PDF / Drukuj">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        PDF
+      </button>
+
+      <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 0.5rem;"></div>
+
+      <button class="btn" id="btn-prev" title="Poprzedni slajd (Strzałka w lewo)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      
+      <span class="slide-counter" id="slide-counter">1 / 7</span>
+
+      <button class="btn btn-primary" id="btn-next" title="Następny slajd (Strzałka w prawo / Spacja)">
+        <span>Dalej</span>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Main Presentation Slides -->
+  <main>
+    <div class="slides-wrapper">
+
+      <!-- SLAJD 1: Zakres cyklu inżynierii danych -->
+      <section class="slide active" data-slide="1">
+        <div class="slide-header">
+          <div class="slide-subtitle">01. Architektura i Proces</div>
+          <h1 class="slide-title">Zakres cyklu inżynierii danych (Data Lifecycle)</h1>
+        </div>
+        
+        <div class="grid-layout">
+          <div class="tile col-12">
+            <div class="tile-title">
+              <span>Umiejscowienie Milestone 1 w cyklu życia danych</span>
+              <span class="tag tag-blue">ETL / Profilowanie</span>
+            </div>
+            <p class="text-body">
+              Niniejsza faza projektu odpowiada za wstępną ingestie, weryfikację integralności oraz rygorystyczny audyt profilujący surowego zbioru danych Bureau of Transportation Statistics (BTS). Tworzy ona podwaliny pod bezpieczną transformację i zasilanie hurtowni danych.
+            </p>
+            <div class="lifecycle-grid" style="margin-top: 1.25rem;">
+              <div class="step-card">
+                <div class="step-number">01. INGESTION</div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Pobranie surowego pliku</strong>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Odczyt danych źródłowych BTS CSV.</p>
+              </div>
+              <div class="step-card active-step">
+                <div class="step-number">02. PROFILING (M1)</div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Audyt jakości SQL</strong>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Detekcja anomalii, braków i ułamków w DuckDB.</p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">03. CLEANING (M2)</div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Czyszczenie i Normalizacja</strong>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Obsługa 657 braków oraz 327k ułamków.</p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">04. MODELING</div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Hurtownia OLAP</strong>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Model gwiazdy / płatka śniegu w DuckDB.</p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">05. SERVING</div>
+                <strong style="font-size:0.9rem; color:var(--text-main);">Analityka BI / API</strong>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Dashboardy operacyjne i raporty.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile col-4">
+            <div class="metric-label">Przestrzeń czasowa badania</div>
+            <div class="metric-value">2003–2025</div>
+            <span class="tag tag-blue">22 lata obserwacji</span>
+            <p class="text-body" style="margin-top:0.75rem;">
+              Pełny horyzont danych miesięcznych ruchu lotniczego w USA, obejmujący zjawiska kryzysowe (COVID-19, załamania pogodowe).
+            </p>
+          </div>
+
+          <div class="tile col-4">
+            <div class="metric-label">Wolumen wierszy (Total Rows)</div>
+            <div class="metric-value">398 233</div>
+            <span class="tag tag-emerald">100% zliczone</span>
+            <p class="text-body" style="margin-top:0.75rem;">
+              Rekordy agregacji miesięcznej relacji przewoźnik–lotnisko docelowe.
+            </p>
+          </div>
+
+          <div class="tile col-4">
+            <div class="metric-label">Liczba identyfikowanych metryk</div>
+            <div class="metric-value">13+</div>
+            <span class="tag tag-purple">Struktura skonsolidowana</span>
+            <p class="text-body" style="margin-top:0.75rem;">
+              Kombinacja metryk zliczeniowych, opóźnień w minutach oraz przyczyn operacyjnych.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 2: Problem biznesowy i wartość -->
+      <section class="slide" data-slide="2">
+        <div class="slide-header">
+          <div class="slide-subtitle">02. Wartość Biznesowa</div>
+          <h1 class="slide-title">Problem biznesowy i skala opóźnień</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>Łączny czas opóźnień</span>
+            </div>
+            <div class="metric-value" style="color: var(--accent-rose);">27,61 mln</div>
+            <div class="metric-label">godzin opóźnień pasażerskich (27 614.8k h)</div>
+            <p class="text-body" style="margin-top: 1rem;">
+              Skumulowany czas opóźnień reprezentuje gigantyczne straty finansowe dla linii lotniczych, lotnisk oraz gospodarki (paliwo, załoga, odszkodowania).
+            </p>
+          </div>
+
+          <div class="tile col-8">
+            <div class="tile-title">
+              <span>Struktura przyczyn opóźnień w tysiącach godzin (k hours)</span>
+              <span class="tag tag-amber">Suma: 27 614.8k h</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chartDelayCauses"></canvas>
+            </div>
+          </div>
+
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Kluczowe czynniki biznesowe</span>
+            </div>
+            <ul class="custom-list">
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-rose);"></div>
+                <div>
+                  <strong>Opóźnienia powracające (Late Aircraft - 10 613.1k h):</strong> Największy dominator (38.4%). Opóźnienie jednego samolotu generuje efekt domina w kolejnych rotacjach.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
+                <div>
+                  <strong>Błędy przewoźnika (Carrier - 8 675.9k h):</strong> Druga kategoria (31.4%) obejmująca usterki techniczne, kompletowanie załóg i obsługę naziemną.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-blue);"></div>
+                <div>
+                  <strong>Przestrzeń powietrzna (NAS - 6 798.6k h):</strong> Przepustowość lotnisk i kontrola ruchu (24.6%).
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Cel projektowanej hurtowni</span>
+            </div>
+            <ul class="custom-list">
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
+                <div>
+                  <strong>Optymalizacja rozkładów:</strong> Identyfikacjaowąskich gardeł w relacjach czasowych i przestronności portów.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
+                <div>
+                  <strong>Benchmarking linii lotniczych:</strong> Porównywanie rzeczywistej punktualności operacyjnej z uwzględnieniem obiektywnych przyczyn zewnętrznych (Weather: 1 479.9k h, Security: 47.3k h).
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 3: Schemat danych i licencja -->
+      <section class="slide" data-slide="3">
+        <div class="slide-header">
+          <div class="slide-subtitle">03. Specyfikacja Danych</div>
+          <h1 class="slide-title">Schemat danych i licencjonowanie Open Data</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-8">
+            <div class="tile-title">
+              <span>Struktura atrybutów tabeli źródłowej</span>
+              <span class="tag tag-blue">BTS Public Data</span>
+            </div>
+            <div class="data-table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Kolumna</th>
+                    <th>Typ danych</th>
+                    <th>Opis biznesowy</th>
+                    <th>Status braków</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">year, month</td>
+                    <td class="mono">INTEGER / FLOAT</td>
+                    <td>Wymiar czasu (2003-2025, M1-M12)</td>
+                    <td><span class="tag tag-emerald">0 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">carrier, carrier_name</td>
+                    <td class="mono">VARCHAR</td>
+                    <td>Kod IATA i pełna nazwa przewoźnika</td>
+                    <td><span class="tag tag-emerald">0 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">airport, airport_name</td>
+                    <td class="mono">VARCHAR</td>
+                    <td>Kod IATA i nazwa lotniska docelowego</td>
+                    <td><span class="tag tag-emerald">0 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">arr_flights</td>
+                    <td class="mono">FLOAT</td>
+                    <td>Liczba planowanych przylotów</td>
+                    <td><span class="tag tag-amber">657 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">arr_del15</td>
+                    <td class="mono">FLOAT</td>
+                    <td>Liczba lotów opóźnionych &ge; 15 min</td>
+                    <td><span class="tag tag-amber">950 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">carrier_ct, weather_ct...</td>
+                    <td class="mono">FLOAT</td>
+                    <td>Zliczenia ułamkowe przyczyn opóźnień</td>
+                    <td><span class="tag tag-amber">657 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">arr_cancelled, arr_diverted</td>
+                    <td class="mono">FLOAT</td>
+                    <td>Loty odwołane / przekierowane</td>
+                    <td><span class="tag tag-amber">657 braków</span></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">arr_delay</td>
+                    <td class="mono">FLOAT</td>
+                    <td>Łączny czas opóźnień w minutach</td>
+                    <td><span class="tag tag-amber">657 braków</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>Licencja i Pochodzenie</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+                <div class="metric-label">Źródło</div>
+                <strong style="color:var(--text-main); font-size:1rem;">U.S. Department of Transportation (DOT) / BTS</strong>
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+                <div class="metric-label">Status prawny</div>
+                <strong style="color:var(--accent-emerald); font-size:1rem;">Public Domain / U.S. Government Work</strong>
+              </div>
+              <p class="text-body">
+                Dane są w pełni otwarte (Open Data). Brak ograniczeń komercyjnych czy prawnych. Nie zawierają danych osobowych pasażerów (PII), co eliminuje ryzyko naruszeń RODO/CCPA.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 4: Anomalie techniczne i dziedzinowe -->
+      <section class="slide" data-slide="4">
+        <div class="slide-header">
+          <div class="slide-subtitle">04. Wykryte Anomalie</div>
+          <h1 class="slide-title">Anomalie techniczne i dziedzinowe w zbiorze</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>Główna Anomalia Strukturalna</span>
+            </div>
+            <div class="metric-value" style="color:var(--accent-amber);">82.36%</div>
+            <div class="metric-label">327 994 wierszy z ułamkami</div>
+            <p class="text-body" style="margin-top:0.75rem;">
+              Zliczenia opóźnień według przyczyn (<span class="mono">carrier_ct</span>, itp.) są zapisane jako ułamki dziesiętne!
+            </p>
+            <span class="tag tag-amber">Modelowanie proporcjonalne BTS</span>
+          </div>
+
+          <div class="tile col-8">
+            <div class="tile-title">
+              <span>Podsumowanie testów walidacyjnych w DuckDB</span>
+              <span class="tag tag-blue">Automatyczny Audyt SQL</span>
+            </div>
+            <div class="data-table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Reguła walidacyjna (Assertion Check)</th>
+                    <th>Wykryte błędy</th>
+                    <th>Kwalifikacja i opis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Ułamkowe wartości zliczeń (<span class="mono">fractional_carrier_counts</span>)</td>
+                    <td class="mono" style="color:var(--accent-amber); font-weight:700;">327 994</td>
+                    <td>Specyfika BTS: Opóźnienia z wielu przyczyn dzielą lot na ułamki (np. 0.5 lotu).</td>
+                  </tr>
+                  <tr>
+                    <td>Niespójność sum składników opóźnień (<span class="mono">delay_components_sum_mismatch</span>)</td>
+                    <td class="mono" style="color:var(--accent-rose); font-weight:700;">9</td>
+                    <td>Błąd zaokrągleń w źródle (Suma component_ct != arr_del15).</td>
+                  </tr>
+                  <tr>
+                    <td>Epizody 100% odwołań (<span class="mono">all_flights_cancelled_records</span>)</td>
+                    <td class="mono" style="color:var(--accent-blue); font-weight:700;">270</td>
+                    <td>Lotniska/przewoźnicy z 100% odwołanych lotów (np. huragany, załamania).</td>
+                  </tr>
+                  <tr>
+                    <td>Ujemne liczby lotów / opóźnień</td>
+                    <td class="mono" style="color:var(--accent-emerald);">0</td>
+                    <td>Sukces: Brak ujemnych wartości w całym zbiorze.</td>
+                  </tr>
+                  <tr>
+                    <td>Opóźnione / odwołane &gt; Razem lotów</td>
+                    <td class="mono" style="color:var(--accent-emerald);">0</td>
+                    <td>Sukces: Spójność relatywna liczby lotów zachowana.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 5: Martwe punkty i ograniczenia danych -->
+      <section class="slide" data-slide="5">
+        <div class="slide-header">
+          <div class="slide-subtitle">05. Ograniczenia i Top Lotniska</div>
+          <h1 class="slide-title">Martwe punkty (Blind Spots) i ranking opóźnień</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Top 10 najbardziej opóźnionych lotnisk w USA (% opóźnień)</span>
+            </div>
+            <div class="chart-container" style="height:260px;">
+              <canvas id="chartTopAirports"></canvas>
+            </div>
+          </div>
+
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Identyfikacja martwych punktów (Limitations)</span>
+            </div>
+            <ul class="custom-list">
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-rose);"></div>
+                <div>
+                  <strong>Brak ziarnistości na poziomie pojedynczego lotu:</strong> Dane są agregacją miesięczną. Brak numerów rejsów, numerów ogonowych samolotów (tail number) czy konkretnych godzin.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
+                <div>
+                  <strong>Brak danych kosztowych i cenowych:</strong> Brak informacji o straty finansowej per pasażer lub koszcie paliwa.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-purple);"></div>
+                <div>
+                  <strong>Brak szczegółów meteorologicznych:</strong> Kategoria Weather obejmuje tylko skrajne zjawiska; zwykła czarterowa pogoda trafia do kaskady NAS.
+                </div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
+                <div>
+                  <strong>657 / 950 brakujących wpisów:</strong> Wymaga przemyślanej strategii usuwania/imputacji w Milestone 2.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tile col-12">
+            <div class="tile-title">
+              <span>Legenda kodów IATA — Top 10 lotnisk (Nazwa i Miasto)</span>
+              <span class="tag tag-blue">Słownik węzłów</span>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem; font-size: 0.8rem; margin-top: 0.3rem;">
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">EWR:</span> Newark, NJ (Newark Liberty Int.)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">SFO:</span> San Francisco, CA (San Francisco Int.)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">LGA:</span> New York, NY (LaGuardia)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">JFK:</span> New York, NY (John F. Kennedy Int.)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">FLL:</span> Fort Lauderdale, FL (Hollywood Int.)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">BOS:</span> Boston, MA (Logan International)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">ORD:</span> Chicago, IL (O'Hare International)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">PHL:</span> Filadelfia, PA (Philadelphia Int.)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">MCO:</span> Orlando, FL (Orlando International)
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">RDU:</span> Raleigh/Durham, NC (Raleigh-Durham Int.)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 6: Kwestie etyczne i ryzyka -->
+      <section class="slide" data-slide="6">
+        <div class="slide-header">
+          <div class="slide-subtitle">06. Etyka i Ryzyko Analityczne</div>
+          <h1 class="slide-title">Kwestie etyczne, obciążenia i ryzyka interpretacyjne</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Stronniczość atrybucji winy (Attribution Bias)</span>
+              <span class="tag tag-amber">Ryzyko Interpretacji</span>
+            </div>
+            <p class="text-body">
+              Przypisywanie opóźnień wyłącznie liniom lotniczym (<span class="mono">carrier_hours_k = 8 675.9k</span>) bez uwzględnienia przeciążenia węzłów lotniczych (NAS = 6 798.6k h) wprowadza błędną ocenę jakości usług operacyjnych.
+            </p>
+            <p class="text-body">
+              Duże węzły (np. EWR - 27.26% opóźnień, SFO - 24.42%) karzą przewoźników za systemowe opóźnienia przestrzeni powietrznej.
+            </p>
+          </div>
+
+          <div class="tile col-6">
+            <div class="tile-title">
+              <span>Błędna interpretacja ułamków (Fractional Bias)</span>
+              <span class="tag tag-rose">Ryzyko Błędów Raportowych</span>
+            </div>
+            <p class="text-body">
+              Próba rzutowania 327 994 ułamkowych rekordów (<span class="mono">fractional_carrier_counts</span>) na liczby całkowite za pomocą funkcji <span class="mono">ROUND()</span> doprowadzi do sztucznego zgubienia tysięcy godzin opóźnień w skali zbioru.
+            </p>
+            <p class="text-body">
+              Wymagane jest zachowanie typu <span class="mono">DOUBLE / DECIMAL</span> w warstwie analitycznej.
+            </p>
+          </div>
+
+          <div class="tile col-12">
+            <div class="tile-title">
+              <span>Etyczne wykorzystanie danych otwartych (Open Data Standard)</span>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+                <strong style="color:var(--accent-emerald);">Prywatność Pasażerów:</strong>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
+                  Zbiór BTS jest w pełni zanonimizowany i zagregowany. Brak możliwości śledzenia osób indywidualnych.
+                </p>
+              </div>
+              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+                <strong style="color:var(--accent-blue);">Uczciwość Oceny Linii:</strong>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
+                  Modele predictive ML nie mogą wyciągać wniosków krzywdzących bez uwzględnienia czynników pogodowych i infrastrukturalnych.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 7: Wykorzystanie AI w projekcie -->
+      <section class="slide" data-slide="7">
+        <div class="slide-header">
+          <div class="slide-subtitle">07. Wykorzystanie AI</div>
+          <h1 class="slide-title">Wykorzystanie Generative AI w projekcie i prezentacji</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>1. Ekstrakcja czystych danych</span>
+            </div>
+            <p class="text-body">
+              Dedykowana funkcja analityczna w Pythonie wyeksportowała czyste tabele i metryki z silnika DuckDB do pliku <span class="mono">data/profiling_results.txt</span>, bez narracji czy komentarzy.
+            </p>
+            <span class="tag tag-emerald">Czysty plik TXT</span>
+          </div>
+
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>2. Transfer do modelu Gemini</span>
+            </div>
+            <p class="text-body">
+              Wygenerowany plik tekstowy został załączony bezpośrednio w oknie przeglądarkowej wersji modelu <strong>Google Gemini</strong> jako fundament merytoryczny prezentacji.
+            </p>
+            <span class="tag tag-blue">Przeglądarkowe Gemini</span>
+          </div>
+
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>3. Generacja kodu prezentacji</span>
+            </div>
+            <p class="text-body">
+              Zastosowano precyzyjny prompt inżynieryjny, który wymusił wygenerowanie kompletnego kodu HTML z interaktywnymi wykresami Chart.js oraz dark mode, ściśle bazującego na liczbach z pliku.
+            </p>
+            <span class="tag tag-purple">Interaktywny HTML</span>
+          </div>
+
+          <div class="tile col-12">
+            <div class="tile-title">
+              <span>Treść prompta przesłana do przeglądarkowego Gemini</span>
+              <span class="tag tag-amber">Prompt Inżynieryjny</span>
+            </div>
+            <div style="background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1.2rem; font-family:var(--font-mono); font-size:0.83rem; line-height:1.6; color:var(--text-main); white-space:pre-wrap; word-break:break-word;">Na podstawie załączonego pliku txt z surowymi wynikami profilowania zbioru BTS Flight Delays, przygotuj nowoczesną, kompletną i interaktywną prezentację w pojedynczym pliku HTML (ciemny motyw / dark mode z przełącznikiem, dynamiczne wykresy Chart.js, responsywny grid kafelkowy, nawigacja klawiaturą, modal podglądu slajdów oraz wsparcie druku/PDF). Prezentacja musi rygorystycznie opierać się na twardych liczbach ze zbioru danych zawartych w pliku txt (398 233 rekordy, 657 braków w metrykach opóźnień, 82.36% wartości ułamkowych w kolumnach zliczeń, 9 niespójności sum, 270 epizodów 100% odwołań, skumulowane czasy opóźnień oraz ranking najbardziej obciążonych lotnisk). Slajdy muszą zawierać: 1. Zakres cyklu inżynierii danych, 2. Problem biznesowy i skala opóźnień, 3. Schemat danych i licencjonowanie, 4. Anomalie techniczne i dziedzinowe, 5. Martwe punkty i ranking opóźnień, 6. Kwestie etyczne i ryzyka interpretacyjne. Zadbaj o profesjonalny design inżynierski klasy dashboardu analitycznego, bez zmyślania metryk.</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Overview Grid Modal -->
+  <div class="overview-overlay" id="overview-modal">
+    <div class="overview-header">
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Przegląd slajdów prezentacji</h2>
+      <button class="btn" id="btn-close-overview">Zamknij (ESC)</button>
+    </div>
+    <div class="overview-grid" id="overview-grid-container"></div>
+  </div>
+
+  <script>
+    // State management
+    let currentSlide = 1;
+    const totalSlides = 7;
+
+    // DOM Elements
+    const slides = document.querySelectorAll('.slide');
+    const slideCounter = document.getElementById('slide-counter');
+    const progressFill = document.getElementById('progress-fill');
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnOverview = document.getElementById('btn-overview');
+    const btnTheme = document.getElementById('btn-theme');
+    const overviewModal = document.getElementById('overview-modal');
+    const overviewGridContainer = document.getElementById('overview-grid-container');
+    const btnCloseOverview = document.getElementById('btn-close-overview');
+
+    // Slide Titles for Grid Overview
+    const slideTitles = [
+      "Zakres cyklu inżynierii danych",
+      "Problem biznesowy i skala opóźnień",
+      "Schemat danych i licencjonowanie",
+      "Anomalie techniczne i dziedzinowe",
+      "Martwe punkty i ranking opóźnień",
+      "Kwestie etyczne i ryzyka",
+      "Wykorzystanie AI w projekcie"
+    ];
+
+    // Initialize Overview Modal Cards
+    slideTitles.forEach((title, idx) => {
+      const card = document.createElement('div');
+      card.className = 'overview-card';
+      card.innerHTML = `
+        <div class="overview-card-number">SLAJD 0${idx + 1}</div>
+        <div class="overview-card-title">${title}</div>
+      `;
+      card.addEventListener('click', () => {
+        goToSlide(idx + 1);
+        closeOverview();
+      });
+      overviewGridContainer.appendChild(card);
+    });
+
+    // Navigation functions
+    function updateSlide() {
+      slides.forEach((s, i) => {
+        if (i + 1 === currentSlide) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+      progressFill.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+      // Render charts dynamically when slide becomes active
+      if (currentSlide === 2) renderDelayCausesChart();
+      if (currentSlide === 5) renderTopAirportsChart();
+    }
+
+    function goToSlide(n) {
+      if (n >= 1 && n <= totalSlides) {
+        currentSlide = n;
+        updateSlide();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function openOverview() {
+      overviewModal.classList.add('active');
+    }
+
+    function closeOverview() {
+      overviewModal.classList.remove('active');
+    }
+
+    // Event Listeners
+    btnNext.addEventListener('click', nextSlide);
+    btnPrev.addEventListener('click', prevSlide);
+    btnOverview.addEventListener('click', openOverview);
+    btnCloseOverview.addEventListener('click', closeOverview);
+
+    // Dark/Light Theme Toggle
+    btnTheme.addEventListener('click', () => {
+      document.documentElement.classList.toggle('light');
+      // Re-render active charts to pick up color adjustments if needed
+      if (currentSlide === 2) renderDelayCausesChart();
+      if (currentSlide === 5) renderTopAirportsChart();
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        if (!overviewModal.classList.contains('active')) nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        if (!overviewModal.classList.contains('active')) prevSlide();
+      } else if (e.key === 'Escape') {
+        closeOverview();
+      }
+    });
+
+    // Chart.js Instances
+    let chartDelayCausesInstance = null;
+    let chartTopAirportsInstance = null;
+
+    function renderDelayCausesChart() {
+      const ctx = document.getElementById('chartDelayCauses');
+      if (!ctx) return;
+
+      if (chartDelayCausesInstance) {
+        chartDelayCausesInstance.destroy();
+      }
+
+      const isLight = document.documentElement.classList.contains('light');
+      const textColor = isLight ? '#0f172a' : '#f3f4f6';
+
+      chartDelayCausesInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Late Aircraft', 'Carrier', 'NAS', 'Weather', 'Security'],
+          datasets: [{
+            label: 'Godziny opóźnień (w tysiącach / k hours)',
+            data: [10613.1, 8675.9, 6798.6, 1479.9, 47.3],
+            backgroundColor: [
+              '#f43f5e',
+              '#f59e0b',
+              '#3b82f6',
+              '#06b6d4',
+              '#a855f7'
+            ],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${context.raw.toLocaleString('pl-PL')}k godzin (${(context.raw / 27614.8 * 100).toFixed(1)}%)`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', weight: '600' } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: textColor },
+              grid: { color: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTopAirportsChart() {
+      const ctx = document.getElementById('chartTopAirports');
+      if (!ctx) return;
+
+      if (chartTopAirportsInstance) {
+        chartTopAirportsInstance.destroy();
+      }
+
+      const isLight = document.documentElement.classList.contains('light');
+      const textColor = isLight ? '#0f172a' : '#f3f4f6';
+
+      chartTopAirportsInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['EWR', 'SFO', 'LGA', 'JFK', 'FLL', 'BOS', 'ORD', 'PHL', 'MCO', 'RDU'],
+          datasets: [{
+            label: '% Lotów opóźnionych',
+            data: [27.26, 24.42, 23.94, 22.92, 22.00, 21.55, 21.42, 21.12, 20.44, 20.41],
+            backgroundColor: '#3b82f6',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${context.raw}% lotów opóźnionych`
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 15,
+              max: 30,
+              ticks: { color: textColor, callback: (v) => v + '%' },
+              grid: { color: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)' }
+            },
+            y: {
+              ticks: { color: textColor, font: { family: 'JetBrains Mono', weight: '600' } },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize first view
+    updateSlide();
+  </script>
+</body>
+</html>
