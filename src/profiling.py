@@ -1,6 +1,7 @@
-from typing import Dict, Any, Optional
-from pathlib import Path
 import io
+from pathlib import Path
+from typing import Any, Dict, Optional
+
 import duckdb
 import polars as pl
 
@@ -19,9 +20,7 @@ def _frame_to_text(df: pl.DataFrame) -> str:
     return buf.getvalue().rstrip("\n")
 
 
-def get_schema_description(
-    file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None
-) -> pl.DataFrame:
+def get_schema_description(file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pl.DataFrame:
     if con is None:
         con = get_duckdb_connection()
     query = f"DESCRIBE SELECT * FROM '{file_path}'"

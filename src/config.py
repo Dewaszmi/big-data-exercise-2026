@@ -14,4 +14,3 @@ PROFILING_TXT_PATH = DATA_DIR / "profiling_results.txt"
 
 for directory in [RAW_DATA_DIR, PROCESSED_DATA_DIR, PARTITIONED_DATA_DIR, NOTEBOOKS_DIR, PRESENTATION_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
-
