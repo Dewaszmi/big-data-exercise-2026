@@ -24,6 +24,10 @@ def download_bts_dataset() -> Path:
         
     return target_csv
 
-if __name__ == "__main__":
+def main() -> None:
     download_bts_dataset()
     print("Dataset download completed successfully.")
+
+
+if __name__ == "__main__":
+    main()

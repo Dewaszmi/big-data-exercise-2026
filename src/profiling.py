@@ -1,26 +1,41 @@
 from typing import Dict, Any, Optional
 from pathlib import Path
+import io
 import duckdb
-import pandas as pd
+import polars as pl
 
 
 def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
     return duckdb.connect(database=":memory:")
 
 
-def get_schema_description(file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> pd.DataFrame:
+def _wide_row_to_metric_value(df: pl.DataFrame) -> pl.DataFrame:
+    return df.unpivot(on=df.columns, variable_name="metric", value_name="value")
+
+
+def _frame_to_text(df: pl.DataFrame) -> str:
+    buf = io.StringIO()
+    df.write_csv(buf)
+    return buf.getvalue().rstrip("\n")
+
+
+def get_schema_description(
+    file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None
+) -> pl.DataFrame:
     if con is None:
         con = get_duckdb_connection()
     query = f"DESCRIBE SELECT * FROM '{file_path}'"
-    return con.execute(query).df()
+    return con.execute(query).pl()
 
 
-def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None) -> Dict[str, pd.DataFrame]:
+def profile_bts_flight_delays(
+    file_path: str, con: Optional[duckdb.DuckDBPyConnection] = None
+) -> Dict[str, pl.DataFrame]:
     if con is None:
         con = get_duckdb_connection()
-        
+
     con.execute(f"CREATE OR REPLACE TEMP VIEW bts_source AS SELECT * FROM '{file_path}'")
-        
+
     null_sql = """
     SELECT
         COUNT(*) AS total_rows,
@@ -38,9 +53,8 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         COUNT(*) - COUNT(arr_delay) AS null_arr_delay
     FROM bts_source
     """
-    df_nulls = con.execute(null_sql).df().T.reset_index()
-    df_nulls.columns = ["metric", "value"]
-    
+    df_nulls = _wide_row_to_metric_value(con.execute(null_sql).pl())
+
     stats_sql = """
     SELECT
         MIN(year) AS min_year, MAX(year) AS max_year,
@@ -54,7 +68,7 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         ROUND(AVG(arr_delay), 2) AS avg_arr_delay
     FROM bts_source
     """
-    df_stats = con.execute(stats_sql).df()
+    df_stats = con.execute(stats_sql).pl()
 
     anomaly_sql = """
     SELECT
@@ -67,8 +81,8 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
         COUNT(*) FILTER (WHERE arr_cancelled = arr_flights AND arr_flights > 0) AS all_flights_cancelled_records
     FROM bts_source
     """
-    df_anomalies = con.execute(anomaly_sql).df().T.reset_index()
-    df_anomalies.columns = ["anomaly_type", "detected_count"]
+    df_anomalies = _wide_row_to_metric_value(con.execute(anomaly_sql).pl())
+    df_anomalies = df_anomalies.rename({"metric": "anomaly_type", "value": "detected_count"})
 
     return {
         "null_profile": df_nulls,
@@ -77,15 +91,20 @@ def profile_bts_flight_delays(file_path: str, con: Optional[duckdb.DuckDBPyConne
     }
 
 
-def save_profiling_results_to_txt(file_path: str, output_txt_path: Optional[str] = None, con: Optional[duckdb.DuckDBPyConnection] = None) -> str:
+def save_profiling_results_to_txt(
+    file_path: str,
+    output_txt_path: Optional[str] = None,
+    con: Optional[duckdb.DuckDBPyConnection] = None,
+) -> str:
     if con is None:
         con = get_duckdb_connection()
     if output_txt_path is None:
         from src.config import PROFILING_TXT_PATH
+
         output_txt_path = str(PROFILING_TXT_PATH)
-        
+
     profiles = profile_bts_flight_delays(file_path, con=con)
-    
+
     top_airports_query = """
     SELECT 
         airport,
@@ -101,7 +120,7 @@ def save_profiling_results_to_txt(file_path: str, output_txt_path: Optional[str]
     ORDER BY delay_percentage DESC
     LIMIT 10
     """
-    df_top_airports = con.execute(top_airports_query).df()
+    df_top_airports = con.execute(top_airports_query).pl()
 
     causes_query = """
     SELECT
@@ -112,30 +131,39 @@ def save_profiling_results_to_txt(file_path: str, output_txt_path: Optional[str]
         ROUND(SUM(late_aircraft_delay) / 60.0 / 1000.0, 1) AS late_aircraft_hours_k
     FROM bts_source
     """
-    df_causes = con.execute(causes_query).df()
-    
+    df_causes = con.execute(causes_query).pl()
+
+    stats_vertical = profiles["descriptive_stats"].transpose(
+        include_header=True,
+        header_name="metric",
+        column_names=["value"],
+    )
+
     lines = [
-        profiles["null_profile"].to_string(index=False),
+        _frame_to_text(profiles["null_profile"]),
         "",
-        profiles["descriptive_stats"].T.to_string(),
+        _frame_to_text(stats_vertical),
         "",
-        profiles["anomalies"].to_string(index=False),
+        _frame_to_text(profiles["anomalies"]),
         "",
-        df_top_airports.to_string(index=False),
+        _frame_to_text(df_top_airports),
         "",
-        df_causes.to_string(index=False),
+        _frame_to_text(df_causes),
     ]
-    
+
     content = "\n".join(lines) + "\n"
     Path(output_txt_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_txt_path, "w", encoding="utf-8") as f:
         f.write(content)
-        
+
     return output_txt_path
 
 
-if __name__ == "__main__":
+def main() -> None:
     from src.config import BTS_CSV_PATH, PROFILING_TXT_PATH
+
     save_profiling_results_to_txt(str(BTS_CSV_PATH), str(PROFILING_TXT_PATH))
 
 
+if __name__ == "__main__":
+    main()

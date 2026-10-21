@@ -32,7 +32,8 @@ big-data-exercise-2026/
 │   ├── download_data.py           # Ingestion script (BTS Flight Delays from Kaggle)
 │   ├── profiling.py               # Reusable DuckDB SQL analytical profiling functions
 │   └── create_notebook.py         # Notebook generator script
-├── requirements.txt               # Frozen dependencies
+├── pyproject.toml                 # Project metadata and dependencies (uv)
+├── uv.lock                        # Locked dependency versions
 └── README.md                      # Documentation
 ```
 
@@ -41,20 +42,19 @@ big-data-exercise-2026/
 ## Getting Started
 
 ### 1. Environment Setup
-The virtual environment is already initialized. To activate it manually:
+Install [uv](https://docs.astral.sh/uv/) if needed, then sync dependencies and activate the virtual environment:
 ```bash
+uv sync
 source .venv/bin/activate
 ```
 
-To install dependencies on another machine:
-```bash
-pip install -r requirements.txt
-```
+On another machine, clone the repo and run `uv sync` (uses `pyproject.toml` and `uv.lock`).
 
 ### 2. Running Data Ingestion
 To verify or redownload raw files:
 ```bash
-python src/download_data.py
+uv run download-bts-data
+# or: uv run python -m src.download_data
 ```
 
 ### 3. Launching the Notebook
