@@ -7,9 +7,8 @@ from src.config import RAW_DATA_DIR
 
 
 def download_bts_dataset() -> Path:
-    print("Fetching BTS Airline Delay dataset from Kaggle...")
     path = kagglehub.dataset_download("daryaheyko/airline-on-time-statistics-and-delay-causes-bts")
-    print(f"Downloaded to cache: {path}")
+    print(f"Downloaded BTS data to cache: {path}")
 
     source_dir = Path(path)
     target_csv = RAW_DATA_DIR / "Airline_Delay_Cause.csv"
