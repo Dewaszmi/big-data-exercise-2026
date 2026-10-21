@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="pl" class="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BTS Flight Delays — Profilowanie i Audyt Danych (Milestone 1)</title>
+  <title>BTS Flight Delays — Profilowanie i Audyt Danych</title>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
   <style>
     :root {
       --bg-primary: #0b0f19;
@@ -180,8 +183,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px) scale(0.99); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     /* Slide Header */
@@ -285,11 +295,30 @@
       font-family: var(--font-mono);
     }
 
-    .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
-    .tag-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
-    .tag-rose { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
-    .tag-emerald { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
-    .tag-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+    .tag-blue {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .tag-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+    }
+
+    .tag-rose {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--accent-rose);
+    }
+
+    .tag-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+    }
+
+    .tag-purple {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--accent-purple);
+    }
 
     /* Tables */
     .data-table-wrapper {
@@ -480,20 +509,46 @@
     }
 
     /* Utilities */
-    .col-12 { grid-column: span 12; }
-    .col-8 { grid-column: span 8; }
-    .col-6 { grid-column: span 6; }
-    .col-4 { grid-column: span 4; }
-    .col-3 { grid-column: span 3; }
+    .col-12 {
+      grid-column: span 12;
+    }
+
+    .col-8 {
+      grid-column: span 8;
+    }
+
+    .col-6 {
+      grid-column: span 6;
+    }
+
+    .col-4 {
+      grid-column: span 4;
+    }
+
+    .col-3 {
+      grid-column: span 3;
+    }
 
     @media (max-width: 1024px) {
-      .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
-      .slide-title { font-size: 1.6rem; }
+
+      .col-8,
+      .col-6,
+      .col-4,
+      .col-3 {
+        grid-column: span 12;
+      }
+
+      .slide-title {
+        font-size: 1.6rem;
+      }
     }
 
     /* Print & Export PDF Styling */
     @media print {
-      header, .progress-bar-container, .nav-controls {
+
+      header,
+      .progress-bar-container,
+      .nav-controls {
         display: none !important;
       }
 
@@ -530,7 +585,9 @@
         color: #000 !important;
       }
 
-      p.text-body, .custom-list li, table.data-table td {
+      p.text-body,
+      .custom-list li,
+      table.data-table td {
         color: #333 !important;
       }
 
@@ -541,6 +598,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Top Header Navigation -->
@@ -549,33 +607,49 @@
       <span class="brand-badge">Milestone 1</span>
       <span>BTS Flight Delays Engine</span>
     </div>
-    
+
     <div class="nav-controls">
       <button class="btn" id="btn-overview" title="Przegląd slajdów (Grid)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path
+            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+          </path>
+        </svg>
         Siatka
       </button>
 
       <button class="btn" id="btn-theme" title="Przełącz tryb jasny/ciemny">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+          </path>
+        </svg>
       </button>
 
       <button class="btn" onclick="window.print()" title="Eksportuj do PDF / Drukuj">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path
+            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+          </path>
+        </svg>
         PDF
       </button>
 
       <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 0.5rem;"></div>
 
       <button class="btn" id="btn-prev" title="Poprzedni slajd (Strzałka w lewo)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M15 19l-7-7 7-7"></path>
+        </svg>
       </button>
-      
+
       <span class="slide-counter" id="slide-counter">1 / 7</span>
 
       <button class="btn btn-primary" id="btn-next" title="Następny slajd (Strzałka w prawo / Spacja)">
         <span>Dalej</span>
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 5l7 7-7 7"></path>
+        </svg>
       </button>
     </div>
   </header>
@@ -593,53 +667,18 @@
       <section class="slide active" data-slide="1">
         <div class="slide-header">
           <div class="slide-subtitle">01. Architektura i Proces</div>
-          <h1 class="slide-title">Zakres cyklu inżynierii danych (Data Lifecycle)</h1>
+          <h1 class="slide-title">Zbiór danych</h1>
         </div>
-        
+
         <div class="grid-layout">
-          <div class="tile col-12">
-            <div class="tile-title">
-              <span>Umiejscowienie Milestone 1 w cyklu życia danych</span>
-              <span class="tag tag-blue">ETL / Profilowanie</span>
-            </div>
-            <p class="text-body">
-              Niniejsza faza projektu odpowiada za wstępną ingestie, weryfikację integralności oraz rygorystyczny audyt profilujący surowego zbioru danych Bureau of Transportation Statistics (BTS). Tworzy ona podwaliny pod bezpieczną transformację i zasilanie hurtowni danych.
-            </p>
-            <div class="lifecycle-grid" style="margin-top: 1.25rem;">
-              <div class="step-card">
-                <div class="step-number">01. INGESTION</div>
-                <strong style="font-size:0.9rem; color:var(--text-main);">Pobranie surowego pliku</strong>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Odczyt danych źródłowych BTS CSV.</p>
-              </div>
-              <div class="step-card active-step">
-                <div class="step-number">02. PROFILING (M1)</div>
-                <strong style="font-size:0.9rem; color:var(--text-main);">Audyt jakości SQL</strong>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Detekcja anomalii, braków i ułamków w DuckDB.</p>
-              </div>
-              <div class="step-card">
-                <div class="step-number">03. CLEANING (M2)</div>
-                <strong style="font-size:0.9rem; color:var(--text-main);">Czyszczenie i Normalizacja</strong>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Obsługa 657 braków oraz 327k ułamków.</p>
-              </div>
-              <div class="step-card">
-                <div class="step-number">04. MODELING</div>
-                <strong style="font-size:0.9rem; color:var(--text-main);">Hurtownia OLAP</strong>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Model gwiazdy / płatka śniegu w DuckDB.</p>
-              </div>
-              <div class="step-card">
-                <div class="step-number">05. SERVING</div>
-                <strong style="font-size:0.9rem; color:var(--text-main);">Analityka BI / API</strong>
-                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem;">Dashboardy operacyjne i raporty.</p>
-              </div>
-            </div>
-          </div>
 
           <div class="tile col-4">
             <div class="metric-label">Przestrzeń czasowa badania</div>
             <div class="metric-value">2003–2025</div>
             <span class="tag tag-blue">22 lata obserwacji</span>
             <p class="text-body" style="margin-top:0.75rem;">
-              Pełny horyzont danych miesięcznych ruchu lotniczego w USA, obejmujący zjawiska kryzysowe (COVID-19, załamania pogodowe).
+              Pełny horyzont danych miesięcznych ruchu lotniczego w USA, obejmujący zjawiska kryzysowe (COVID-19,
+              załamania pogodowe).
             </p>
           </div>
 
@@ -678,7 +717,8 @@
             <div class="metric-value" style="color: var(--accent-rose);">27,61 mln</div>
             <div class="metric-label">godzin opóźnień pasażerskich (27 614.8k h)</div>
             <p class="text-body" style="margin-top: 1rem;">
-              Skumulowany czas opóźnień reprezentuje gigantyczne straty finansowe dla linii lotniczych, lotnisk oraz gospodarki (paliwo, załoga, odszkodowania).
+              Skumulowany czas opóźnień reprezentuje gigantyczne straty finansowe dla linii lotniczych, lotnisk oraz
+              gospodarki (paliwo, załoga, odszkodowania).
             </p>
           </div>
 
@@ -700,19 +740,22 @@
               <li>
                 <div class="bullet-dot" style="background:var(--accent-rose);"></div>
                 <div>
-                  <strong>Opóźnienia powracające (Late Aircraft - 10 613.1k h):</strong> Największy dominator (38.4%). Opóźnienie jednego samolotu generuje efekt domina w kolejnych rotacjach.
+                  <strong>Opóźnienia powracające (Late Aircraft - 10 613.1k h):</strong> Największy dominator (38.4%).
+                  Opóźnienie jednego samolotu generuje efekt domina w kolejnych rotacjach.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
                 <div>
-                  <strong>Błędy przewoźnika (Carrier - 8 675.9k h):</strong> Druga kategoria (31.4%) obejmująca usterki techniczne, kompletowanie załóg i obsługę naziemną.
+                  <strong>Błędy przewoźnika (Carrier - 8 675.9k h):</strong> Druga kategoria (31.4%) obejmująca usterki
+                  techniczne, kompletowanie załóg i obsługę naziemną.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-blue);"></div>
                 <div>
-                  <strong>Przestrzeń powietrzna (NAS - 6 798.6k h):</strong> Przepustowość lotnisk i kontrola ruchu (24.6%).
+                  <strong>Przestrzeń powietrzna (NAS - 6 798.6k h):</strong> Przepustowość lotnisk i kontrola ruchu
+                  (24.6%).
                 </div>
               </li>
             </ul>
@@ -726,13 +769,15 @@
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
                 <div>
-                  <strong>Optymalizacja rozkładów:</strong> Identyfikacjaowąskich gardeł w relacjach czasowych i przestronności portów.
+                  <strong>Optymalizacja rozkładów:</strong> Identyfikacjaowąskich gardeł w relacjach czasowych i
+                  przestronności portów.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
                 <div>
-                  <strong>Benchmarking linii lotniczych:</strong> Porównywanie rzeczywistej punktualności operacyjnej z uwzględnieniem obiektywnych przyczyn zewnętrznych (Weather: 1 479.9k h, Security: 47.3k h).
+                  <strong>Benchmarking linii lotniczych:</strong> Porównywanie rzeczywistej punktualności operacyjnej z
+                  uwzględnieniem obiektywnych przyczyn zewnętrznych (Weather: 1 479.9k h, Security: 47.3k h).
                 </div>
               </li>
             </ul>
@@ -822,16 +867,21 @@
               <span>Licencja i Pochodzenie</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:1rem;">
-              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+              <div
+                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
                 <div class="metric-label">Źródło</div>
-                <strong style="color:var(--text-main); font-size:1rem;">U.S. Department of Transportation (DOT) / BTS</strong>
+                <strong style="color:var(--text-main); font-size:1rem;">U.S. Department of Transportation (DOT) /
+                  BTS</strong>
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+              <div
+                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
                 <div class="metric-label">Status prawny</div>
-                <strong style="color:var(--accent-emerald); font-size:1rem;">Public Domain / U.S. Government Work</strong>
+                <strong style="color:var(--accent-emerald); font-size:1rem;">Public Domain / U.S. Government
+                  Work</strong>
               </div>
               <p class="text-body">
-                Dane są w pełni otwarte (Open Data). Brak ograniczeń komercyjnych czy prawnych. Nie zawierają danych osobowych pasażerów (PII), co eliminuje ryzyko naruszeń RODO/CCPA.
+                Dane są w pełni otwarte (Open Data). Brak ograniczeń komercyjnych czy prawnych. Nie zawierają danych
+                osobowych pasażerów (PII), co eliminuje ryzyko naruszeń RODO/CCPA.
               </p>
             </div>
           </div>
@@ -853,7 +903,8 @@
             <div class="metric-value" style="color:var(--accent-amber);">82.36%</div>
             <div class="metric-label">327 994 wierszy z ułamkami</div>
             <p class="text-body" style="margin-top:0.75rem;">
-              Zliczenia opóźnień według przyczyn (<span class="mono">carrier_ct</span>, itp.) są zapisane jako ułamki dziesiętne!
+              Zliczenia opóźnień według przyczyn (<span class="mono">carrier_ct</span>, itp.) są zapisane jako ułamki
+              dziesiętne!
             </p>
             <span class="tag tag-amber">Modelowanie proporcjonalne BTS</span>
           </div>
@@ -879,7 +930,8 @@
                     <td>Specyfika BTS: Opóźnienia z wielu przyczyn dzielą lot na ułamki (np. 0.5 lotu).</td>
                   </tr>
                   <tr>
-                    <td>Niespójność sum składników opóźnień (<span class="mono">delay_components_sum_mismatch</span>)</td>
+                    <td>Niespójność sum składników opóźnień (<span class="mono">delay_components_sum_mismatch</span>)
+                    </td>
                     <td class="mono" style="color:var(--accent-rose); font-weight:700;">9</td>
                     <td>Błąd zaokrągleń w źródle (Suma component_ct != arr_del15).</td>
                   </tr>
@@ -930,25 +982,28 @@
               <li>
                 <div class="bullet-dot" style="background:var(--accent-rose);"></div>
                 <div>
-                  <strong>Brak ziarnistości na poziomie pojedynczego lotu:</strong> Dane są agregacją miesięczną. Brak numerów rejsów, numerów ogonowych samolotów (tail number) czy konkretnych godzin.
+                  <strong>Brak ziarnistości na poziomie pojedynczego lotu:</strong> Dane są agregacją miesięczną. Brak
+                  numerów rejsów, numerów ogonowych samolotów (tail number) czy konkretnych godzin.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
                 <div>
-                  <strong>Brak danych kosztowych i cenowych:</strong> Brak informacji o straty finansowej per pasażer lub koszcie paliwa.
+                  <strong>Brak danych kosztowych i cenowych:</strong> Brak informacji o straty finansowej per pasażer
+                  lub koszcie paliwa.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-purple);"></div>
                 <div>
-                  <strong>Brak szczegółów meteorologicznych:</strong> Kategoria Weather obejmuje tylko skrajne zjawiska; zwykła czarterowa pogoda trafia do kaskady NAS.
+                  <strong>Brak szczegółów meteorologicznych:</strong> Kategoria Weather obejmuje tylko skrajne zjawiska;
+                  zwykła czarterowa pogoda trafia do kaskady NAS.
                 </div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
                 <div>
-                  <strong>657 / 950 brakujących wpisów:</strong> Wymaga przemyślanej strategii usuwania/imputacji w Milestone 2.
+                  <strong>657 / 950 brakujących wpisów:</strong>
                 </div>
               </li>
             </ul>
@@ -959,36 +1014,57 @@
               <span>Legenda kodów IATA — Top 10 lotnisk (Nazwa i Miasto)</span>
               <span class="tag tag-blue">Słownik węzłów</span>
             </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem; font-size: 0.8rem; margin-top: 0.3rem;">
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">EWR:</span> Newark, NJ (Newark Liberty Int.)
+            <div
+              style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem; font-size: 0.8rem; margin-top: 0.3rem;">
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">EWR:</span> Newark, NJ (Newark
+                Liberty Int.)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">SFO:</span> San Francisco, CA (San Francisco Int.)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">SFO:</span> San Francisco, CA (San
+                Francisco Int.)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">LGA:</span> New York, NY (LaGuardia)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">LGA:</span> New York, NY
+                (LaGuardia)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">JFK:</span> New York, NY (John F. Kennedy Int.)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">JFK:</span> New York, NY (John F.
+                Kennedy Int.)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">FLL:</span> Fort Lauderdale, FL (Hollywood Int.)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">FLL:</span> Fort Lauderdale, FL
+                (Hollywood Int.)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">BOS:</span> Boston, MA (Logan International)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">BOS:</span> Boston, MA (Logan
+                International)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">ORD:</span> Chicago, IL (O'Hare International)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">ORD:</span> Chicago, IL (O'Hare
+                International)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">PHL:</span> Filadelfia, PA (Philadelphia Int.)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">PHL:</span> Filadelfia, PA
+                (Philadelphia Int.)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">MCO:</span> Orlando, FL (Orlando International)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">MCO:</span> Orlando, FL (Orlando
+                International)
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
-                <span class="mono" style="color:var(--accent-blue); font-weight:700;">RDU:</span> Raleigh/Durham, NC (Raleigh-Durham Int.)
+              <div
+                style="background:rgba(255,255,255,0.02); padding:0.5rem 0.75rem; border-radius:6px; border:1px solid var(--border-color);">
+                <span class="mono" style="color:var(--accent-blue); font-weight:700;">RDU:</span> Raleigh/Durham, NC
+                (Raleigh-Durham Int.)
               </div>
             </div>
           </div>
@@ -1009,10 +1085,13 @@
               <span class="tag tag-amber">Ryzyko Interpretacji</span>
             </div>
             <p class="text-body">
-              Przypisywanie opóźnień wyłącznie liniom lotniczym (<span class="mono">carrier_hours_k = 8 675.9k</span>) bez uwzględnienia przeciążenia węzłów lotniczych (NAS = 6 798.6k h) wprowadza błędną ocenę jakości usług operacyjnych.
+              Przypisywanie opóźnień wyłącznie liniom lotniczym (<span class="mono">carrier_hours_k = 8 675.9k</span>)
+              bez uwzględnienia przeciążenia węzłów lotniczych (NAS = 6 798.6k h) wprowadza błędną ocenę jakości usług
+              operacyjnych.
             </p>
             <p class="text-body">
-              Duże węzły (np. EWR - 27.26% opóźnień, SFO - 24.42%) karzą przewoźników za systemowe opóźnienia przestrzeni powietrznej.
+              Duże węzły (np. EWR - 27.26% opóźnień, SFO - 24.42%) karzą przewoźników za systemowe opóźnienia
+              przestrzeni powietrznej.
             </p>
           </div>
 
@@ -1022,7 +1101,9 @@
               <span class="tag tag-rose">Ryzyko Błędów Raportowych</span>
             </div>
             <p class="text-body">
-              Próba rzutowania 327 994 ułamkowych rekordów (<span class="mono">fractional_carrier_counts</span>) na liczby całkowite za pomocą funkcji <span class="mono">ROUND()</span> doprowadzi do sztucznego zgubienia tysięcy godzin opóźnień w skali zbioru.
+              Próba rzutowania 327 994 ułamkowych rekordów (<span class="mono">fractional_carrier_counts</span>) na
+              liczby całkowite za pomocą funkcji <span class="mono">ROUND()</span> doprowadzi do sztucznego zgubienia
+              tysięcy godzin opóźnień w skali zbioru.
             </p>
             <p class="text-body">
               Wymagane jest zachowanie typu <span class="mono">DOUBLE / DECIMAL</span> w warstwie analitycznej.
@@ -1034,16 +1115,19 @@
               <span>Etyczne wykorzystanie danych otwartych (Open Data Standard)</span>
             </div>
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
-              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+              <div
+                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
                 <strong style="color:var(--accent-emerald);">Prywatność Pasażerów:</strong>
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
                   Zbiór BTS jest w pełni zanonimizowany i zagregowany. Brak możliwości śledzenia osób indywidualnych.
                 </p>
               </div>
-              <div style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
+              <div
+                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
                 <strong style="color:var(--accent-blue);">Uczciwość Oceny Linii:</strong>
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
-                  Modele predictive ML nie mogą wyciągać wniosków krzywdzących bez uwzględnienia czynników pogodowych i infrastrukturalnych.
+                  Modele predictive ML nie mogą wyciągać wniosków krzywdzących bez uwzględnienia czynników pogodowych i
+                  infrastrukturalnych.
                 </p>
               </div>
             </div>
@@ -1064,7 +1148,8 @@
               <span>1. Ekstrakcja czystych danych</span>
             </div>
             <p class="text-body">
-              Dedykowana funkcja analityczna w Pythonie wyeksportowała czyste tabele i metryki z silnika DuckDB do pliku <span class="mono">data/profiling_results.txt</span>, bez narracji czy komentarzy.
+              Dedykowana funkcja analityczna w Pythonie wyeksportowała czyste tabele i metryki z silnika DuckDB do pliku
+              <span class="mono">data/profiling_results.txt</span>, bez narracji czy komentarzy.
             </p>
             <span class="tag tag-emerald">Czysty plik TXT</span>
           </div>
@@ -1074,7 +1159,8 @@
               <span>2. Transfer do modelu Gemini</span>
             </div>
             <p class="text-body">
-              Wygenerowany plik tekstowy został załączony bezpośrednio w oknie przeglądarkowej wersji modelu <strong>Google Gemini</strong> jako fundament merytoryczny prezentacji.
+              Wygenerowany plik tekstowy został załączony bezpośrednio w oknie przeglądarkowej wersji modelu
+              <strong>Google Gemini</strong> jako fundament merytoryczny prezentacji.
             </p>
             <span class="tag tag-blue">Przeglądarkowe Gemini</span>
           </div>
@@ -1084,7 +1170,8 @@
               <span>3. Generacja kodu prezentacji</span>
             </div>
             <p class="text-body">
-              Zastosowano precyzyjny prompt inżynieryjny, który wymusił wygenerowanie kompletnego kodu HTML z interaktywnymi wykresami Chart.js oraz dark mode, ściśle bazującego na liczbach z pliku.
+              Zastosowano precyzyjny prompt inżynieryjny, który wymusił wygenerowanie kompletnego kodu HTML z
+              interaktywnymi wykresami Chart.js oraz dark mode, ściśle bazującego na liczbach z pliku.
             </p>
             <span class="tag tag-purple">Interaktywny HTML</span>
           </div>
@@ -1094,7 +1181,10 @@
               <span>Treść prompta przesłana do przeglądarkowego Gemini</span>
               <span class="tag tag-amber">Prompt Inżynieryjny</span>
             </div>
-            <div style="background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1.2rem; font-family:var(--font-mono); font-size:0.83rem; line-height:1.6; color:var(--text-main); white-space:pre-wrap; word-break:break-word;">na podstawie załączonego pliku txt z surowymi wynikami profilowania zbioru BTS FLight Delays oraz notatnika Jupyter przygotuj prezentację HTML, z możliwością eksportu do PDF.</div>
+            <div
+              style="background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1.2rem; font-family:var(--font-mono); font-size:0.83rem; line-height:1.6; color:var(--text-main); white-space:pre-wrap; word-break:break-word;">
+              na podstawie załączonego pliku txt z surowymi wynikami profilowania zbioru BTS FLight Delays oraz
+              notatnika Jupyter przygotuj prezentację HTML, z możliwością eksportu do PDF.</div>
           </div>
         </div>
       </section>
@@ -1337,4 +1427,5 @@
     updateSlide();
   </script>
 </body>
+
 </html>
