@@ -1,0 +1,195 @@
+Milestone 2 raw results (no narrative)
+
+=== anomaly_report ===
+rule,category,flagged_rows
+missing_measurements,business,950
+negative_values,business,2
+delayed_exceeds_flights,business,0
+outcomes_exceed_flights,business,0
+delay_minutes_sum_mismatch,business,9
+cause_counts_sum_mismatch,business,3
+no_operated_flights,telemetry,448
+delay_minutes_without_delayed_flights,telemetry,0
+avg_delay_below_del15_threshold,telemetry,0
+avg_delay_above_24h,telemetry,5
+
+=== negative_examples ===
+year,month,carrier,airport,nas_ct,nas_delay,arr_delay
+2004,11,EV,BWI,-0.01,-1,414
+2003,8,B6,SLC,0.66,-19,1097
+
+=== telemetry_avg_delay_above_24h_examples ===
+year,month,carrier,airport,arr_flights,arr_del15,arr_delay,avg_delay_min
+2022,6,MQ,MGM,2,2,6348,3174.0
+2020,12,G4,GRI,21,1,1551,1551.0
+2020,2,HA,PPG,8,1,1463,1463.0
+2018,10,9E,DLH,1,1,1916,1916.0
+2016,7,HA,PPG,14,1,1461,1461.0
+
+=== cleaning_funnel ===
+stage,rows,dropped,retained_pct
+raw,398233,,100.0
+after_business_rules,397271,962,99.758
+after_telemetry_rules,397111,160,99.718
+
+=== feature_verification ===
+check,violations
+period_start,0
+quarter,0
+season,0
+is_peak_travel_month,0
+is_covid_period,0
+operated_flights,0
+delay_rate,0
+cancellation_rate,0
+avg_delay_per_delayed,0
+avg_delay_per_operated,0
+shares_sum_to_1,0
+dominant_delay_cause,0
+avg_delay_outside_15min_24h,0
+
+=== feature_worked_example_dl_atl ===
+arr_flights,arr_del15,arr_cancelled,arr_diverted,arr_delay,operated_flights,delay_rate,avg_delay_minutes_per_delayed_flight,dominant_delay_cause,season,quarter
+21839,3506,78,74,298239,21687,0.160538,85.065317,late_aircraft,summer,3
+
+=== partition_key_candidates ===
+partition_key,partitions,min_rows,median_rows,max_rows,est_avg_file_kb
+carrier,38,15,6931,45974,906.3
+year,23,1916,17554,25822,1497.4
+airport,420,1,384,3687,82.0
+carrier + year,439,3,887,2958,78.5
+
+=== partitions ===
+partition,files,rows,size_kb,compression
+carrier=OO,1,45974,3734.3,SNAPPY
+carrier=DL,1,32041,2925.1,SNAPPY
+carrier=MQ,1,29646,2582.3,SNAPPY
+carrier=EV,1,26709,2298.3,SNAPPY
+carrier=AA,1,23680,2596.1,SNAPPY
+carrier=UA,1,22717,2091.3,SNAPPY
+carrier=WN,1,20985,2602.5,SNAPPY
+carrier=YV,1,17109,1263.4,SNAPPY
+carrier=9E,1,15735,1187.6,SNAPPY
+carrier=AS,1,15682,1256.3,SNAPPY
+carrier=OH,1,15361,1303.1,SNAPPY
+carrier=F9,1,14851,1108.5,SNAPPY
+carrier=B6,1,13628,1436.4,SNAPPY
+carrier=US,1,10690,1080.5,SNAPPY
+carrier=G4,1,10255,736.5,SNAPPY
+carrier=NW,1,8068,783.9,SNAPPY
+carrier=XE,1,7365,735.0,SNAPPY
+carrier=YX,1,7075,645.6,SNAPPY
+carrier=FL,1,6954,697.2,SNAPPY
+carrier=CO,1,6908,696.1,SNAPPY
+carrier=NK,1,5718,637.6,SNAPPY
+carrier=ZW,1,5059,418.7,SNAPPY
+carrier=PT,1,4946,438.6,SNAPPY
+carrier=G7,1,4511,342.0,SNAPPY
+carrier=HA,1,4244,325.8,SNAPPY
+carrier=RU,1,4134,431.2,SNAPPY
+carrier=C5,1,4103,340.9,SNAPPY
+carrier=QX,1,3842,321.5,SNAPPY
+carrier=DH,1,1923,222.9,SNAPPY
+carrier=AX,1,1905,179.4,SNAPPY
+carrier=HP,1,1578,180.0,SNAPPY
+carrier=VX,1,1425,174.2,SNAPPY
+carrier=TZ,1,918,111.2,SNAPPY
+carrier=CP,1,916,105.2,SNAPPY
+carrier=AQ,1,253,37.4,SNAPPY
+carrier=EM,1,144,29.3,SNAPPY
+carrier=KS,1,44,17.5,SNAPPY
+carrier=9K,1,15,13.2,SNAPPY
+
+=== io_report ===
+scenario,layout,files_read,files_total,row_groups_read,row_groups_total,scanned_mb,io_reduction_pct,usd_per_1k_queries
+monthly_kpis[DL],A: flat file (full scan),1,1,3,3,3.969,0.0,0.01893
+monthly_kpis[DL],B: partitioned (pruning),1,38,2,2,0.321,91.9,0.00153
+monthly_kpis[OO],A: flat file (full scan),1,1,3,3,3.969,0.0,0.01893
+monthly_kpis[OO],B: partitioned (pruning),1,38,2,2,0.393,90.1,0.00188
+monthly_kpis[HA],A: flat file (full scan),1,1,3,3,3.969,0.0,0.01893
+monthly_kpis[HA],B: partitioned (pruning),1,38,1,1,0.039,99.0,0.00019
+yearly_volume[DL],A: flat file (full scan),1,1,3,3,2.156,0.0,0.01028
+yearly_volume[DL],B: partitioned (pruning),1,38,2,2,0.205,90.5,0.00098
+top_airports[WN],A: flat file (full scan),1,1,3,3,2.251,0.0,0.01073
+top_airports[WN],B: partitioned (pruning),1,38,2,2,0.174,92.3,0.00083
+monthly_kpis[AA+DL+UA],A: flat file (full scan),1,1,3,3,3.969,0.0,0.01893
+monthly_kpis[AA+DL+UA],B: partitioned (pruning),3,38,5,5,0.841,78.8,0.00401
+monthly_kpis[ALL],A: flat file (full scan),1,1,3,3,3.958,0.0,0.01887
+monthly_kpis[ALL],B: partitioned (pruning),38,38,50,50,3.847,2.8,0.01835
+
+=== summary_real ===
+scenario,engine,cache,A_n,A_mean_ms,A_std_ms,B_mean_ms,B_std_ms,B_median_ms,gain_pct,gain_pct_median,speedup
+monthly_kpis[AA+DL+UA],duckdb,cold,20,27.33,1.47,16.52,0.86,16.46,39.55,40.19,1.65
+monthly_kpis[AA+DL+UA],duckdb,warm,20,18.53,2.27,12.98,1.23,12.65,29.96,33.81,1.43
+monthly_kpis[AA+DL+UA],polars,cold,20,18.11,1.3,119.2,14.16,115.15,-558.21,-549.04,0.15
+monthly_kpis[AA+DL+UA],polars,warm,20,12.01,0.98,83.83,5.51,83.34,-597.97,-597.88,0.14
+monthly_kpis[ALL],duckdb,cold,20,22.14,1.88,30.65,3.55,29.91,-38.45,-34.7,0.72
+monthly_kpis[ALL],duckdb,warm,20,11.34,0.83,16.56,1.62,16.03,-45.98,-43.32,0.69
+monthly_kpis[ALL],polars,cold,20,20.07,1.87,50.42,1.38,50.16,-151.3,-148.04,0.4
+monthly_kpis[ALL],polars,warm,20,14.18,2.3,15.55,1.21,15.24,-9.64,-7.14,0.91
+monthly_kpis[DL],duckdb,cold,20,20.73,1.18,16.14,1.52,15.82,22.15,24.84,1.28
+monthly_kpis[DL],duckdb,warm,20,10.57,1.37,10.38,0.68,10.11,1.77,-0.03,1.02
+monthly_kpis[DL],polars,cold,20,14.52,1.13,40.31,1.56,39.69,-177.58,-180.35,0.36
+monthly_kpis[DL],polars,warm,20,8.46,0.47,9.96,0.92,9.87,-17.79,-18.05,0.85
+monthly_kpis[HA],duckdb,cold,20,19.44,0.73,10.64,0.79,10.44,45.25,46.51,1.83
+monthly_kpis[HA],duckdb,warm,20,10.21,1.08,8.8,0.55,8.73,13.81,13.71,1.16
+monthly_kpis[HA],polars,cold,20,14.09,0.68,37.73,1.14,37.71,-167.72,-169.08,0.37
+monthly_kpis[HA],polars,warm,20,9.17,2.87,8.41,0.94,8.02,8.34,0.76,1.09
+monthly_kpis[OO],duckdb,cold,20,19.66,0.78,17.41,0.93,17.26,11.43,12.09,1.13
+monthly_kpis[OO],duckdb,warm,20,10.82,1.33,10.97,0.85,10.91,-1.41,-2.98,0.99
+monthly_kpis[OO],polars,cold,20,14.58,0.84,39.35,1.67,39.66,-169.97,-172.88,0.37
+monthly_kpis[OO],polars,warm,20,8.49,0.99,9.21,0.68,9.03,-8.57,-10.01,0.92
+top_airports[WN],duckdb,cold,20,15.28,1.38,14.58,1.19,14.64,4.57,2.06,1.05
+top_airports[WN],duckdb,warm,20,9.82,0.88,10.78,0.6,10.7,-9.72,-12.73,0.91
+top_airports[WN],polars,cold,20,11.95,0.66,41.36,1.12,41.24,-246.21,-249.07,0.29
+top_airports[WN],polars,warm,20,7.63,0.78,10.67,0.83,10.53,-39.77,-42.05,0.72
+yearly_volume[DL],duckdb,cold,20,13.51,0.55,14.06,0.57,14.0,-4.07,-3.43,0.96
+yearly_volume[DL],duckdb,warm,20,8.6,0.57,10.99,0.55,10.99,-27.79,-30.68,0.78
+yearly_volume[DL],polars,cold,20,11.16,0.77,40.06,1.08,40.25,-259.07,-267.34,0.28
+yearly_volume[DL],polars,warm,20,6.51,0.61,9.69,0.67,9.56,-48.84,-48.87,0.67
+
+=== task_query_comparison_monthly_kpis_DL ===
+scenario,engine,cache,A_flat_ms,B_partitioned_ms,gain_pct,gain_pct_median,speedup
+monthly_kpis[DL],duckdb,cold,20.7 ± 1.2,16.1 ± 1.5,22.2,24.8,1.28
+monthly_kpis[DL],duckdb,warm,10.6 ± 1.4,10.4 ± 0.7,1.8,-0.0,1.02
+monthly_kpis[DL],polars,cold,14.5 ± 1.1,40.3 ± 1.6,-177.6,-180.4,0.36
+monthly_kpis[DL],polars,warm,8.5 ± 0.5,10.0 ± 0.9,-17.8,-18.1,0.85
+
+=== storage_by_scale ===
+scale,rows,A: flat file (full scan),B: partitioned (pruning),partitioned_vs_flat_pct
+1,397111,31.0,34.0,9.9
+5,1985555,153.7,116.8,-24.0
+20,7942220,614.6,436.2,-29.0
+50,19855550,1536.5,1073.6,-30.1
+
+=== summary_scale_task_query ===
+scale,scenario,engine,cache,A_flat_ms,B_partitioned_ms,gain_pct,gain_pct_median,speedup
+1,monthly_kpis[DL],duckdb,cold,16.5 ± 0.8,13.0 ± 1.3,21.1,23.3,1.27
+1,monthly_kpis[DL],duckdb,warm,10.0 ± 1.0,9.8 ± 1.2,2.3,11.0,1.02
+1,monthly_kpis[DL],polars,cold,13.5 ± 0.8,32.1 ± 1.7,-138.5,-141.2,0.42
+1,monthly_kpis[DL],polars,warm,8.1 ± 0.7,9.6 ± 0.7,-19.2,-17.9,0.84
+5,monthly_kpis[DL],duckdb,cold,44.4 ± 3.3,19.8 ± 1.3,55.5,54.2,2.25
+5,monthly_kpis[DL],duckdb,warm,18.6 ± 0.6,12.4 ± 1.5,33.4,36.9,1.5
+5,monthly_kpis[DL],polars,cold,28.7 ± 0.8,41.4 ± 1.2,-44.5,-44.2,0.69
+5,monthly_kpis[DL],polars,warm,19.7 ± 1.2,11.8 ± 0.7,40.4,39.0,1.68
+20,monthly_kpis[DL],duckdb,cold,139.3 ± 7.5,26.5 ± 1.9,81.0,80.8,5.26
+20,monthly_kpis[DL],duckdb,warm,57.6 ± 1.4,16.4 ± 1.3,71.5,71.8,3.5
+20,monthly_kpis[DL],polars,cold,91.0 ± 4.1,60.3 ± 13.4,33.7,36.8,1.51
+20,monthly_kpis[DL],polars,warm,63.4 ± 3.1,16.9 ± 1.6,73.3,73.6,3.74
+50,monthly_kpis[DL],duckdb,cold,335.0 ± 23.0,39.5 ± 5.6,88.2,88.4,8.48
+50,monthly_kpis[DL],duckdb,warm,132.8 ± 2.8,20.8 ± 2.0,84.3,84.5,6.37
+50,monthly_kpis[DL],polars,cold,245.9 ± 17.5,76.3 ± 6.0,69.0,69.1,3.22
+50,monthly_kpis[DL],polars,warm,160.8 ± 16.8,31.5 ± 5.8,80.4,81.0,5.1
+
+=== finops_scale ===
+scale,A_scanned_mb,B_scanned_mb,io_reduction_pct,A_usd_month,B_usd_month
+1,3.79,0.33,91.22,1.81,0.16
+5,19.12,1.16,93.91,9.12,0.56
+20,76.49,4.48,94.14,36.47,2.14
+50,191.23,10.9,94.3,91.18,5.2
+
+=== csv_vs_parquet ===
+format,size_mb,mean_ms,speedup_vs_csv
+raw CSV,50.7,264.7,1.0
+A: flat Parquet,33.6,11.8,22.4
+B: partitioned Parquet,35.2,10.4,25.6

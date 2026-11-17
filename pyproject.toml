@@ -19,6 +19,7 @@ dependencies = [
 download-bts-data = "src.download_data:main"
 profile-bts-data = "src.profiling:main"
 clean-bts-data = "src.cleaning:main"
+export-m2-results-from-notebook = "src.export_m2_from_notebook:main"
 
 [build-system]
 requires = ["hatchling"]

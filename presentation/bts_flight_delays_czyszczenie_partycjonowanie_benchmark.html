@@ -1502,10 +1502,68 @@ GROUP BY month ORDER BY month</div>
         </div>
       </section>
 
-      <!-- SLAJD 10: Wnioski -->
-      <section class="slide" data-slide="10" data-title="Wnioski i trudności">
+      <!-- SLAJD 10: Wykorzystanie AI / źródła wyników -->
+      <section class="slide" data-slide="10" data-title="Źródła wyników i AI">
         <div class="slide-header">
-          <div class="slide-subtitle">10. Podsumowanie</div>
+          <div class="slide-subtitle">10. Wykorzystanie AI</div>
+          <h1 class="slide-title">Prezentacja z surowych wyników, nie z narracji notatnika</h1>
+        </div>
+
+        <div class="grid-layout">
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>1. Ekstrakcja czystych wyników</span>
+            </div>
+            <p class="text-body">
+              Notatnik <span class="mono">02_cleaning_partitioning.ipynb</span> zapisuje tabele (lejki, partycje,
+              I/O, A/B, FinOps) do CSV w <span class="mono">data/benchmark/</span> oraz do jednego pliku
+              <span class="mono">data/cleaning_benchmark_results.txt</span> — bez narracji czy komentarzy
+              (kopia: <span class="mono">presentation/results/</span>).
+            </p>
+            <span class="tag tag-emerald">Czysty plik TXT + CSV</span>
+          </div>
+
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>2. Wykresy jako artefakty</span>
+            </div>
+            <p class="text-body">
+              Te same komórki eksportują PNG do <span class="mono">presentation/figures/</span>
+              (heatmapy zysku, latencja A/B, skanowane MB, sezonowość cech). Slajdy tylko je osadzają.
+            </p>
+            <span class="tag tag-blue">figures/*.png</span>
+          </div>
+
+          <div class="tile col-4">
+            <div class="tile-title">
+              <span>3. Generacja prezentacji</span>
+            </div>
+            <p class="text-body">
+              Na podstawie załączonego pliku wyników, notatnika i wykresów przygotowana została prezentacja HTML
+              z możliwością eksportu do PDF — ten sam wzorzec co w Milestone 1
+              (<span class="mono">profiling_results.txt</span>).
+            </p>
+            <span class="tag tag-purple">HTML → PDF</span>
+          </div>
+
+          <div class="tile col-12">
+            <div class="tile-title">
+              <span>Treść prompta (analogicznie do Milestone 1)</span>
+              <span class="tag tag-amber">Prompt Inżynieryjny</span>
+            </div>
+            <div
+              style="background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1.2rem; font-family:var(--font-mono); font-size:0.83rem; line-height:1.6; color:var(--text-main); white-space:pre-wrap; word-break:break-word;">
+              Na podstawie załączonego pliku txt z surowymi wynikami czyszczenia, partycjonowania i benchmarku A/B
+              zbioru BTS Flight Delays oraz notatnika Jupyter przygotowana została prezentacja HTML, z możliwością
+              eksportu do PDF.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLAJD 11: Wnioski -->
+      <section class="slide" data-slide="11" data-title="Wnioski i trudności">
+        <div class="slide-header">
+          <div class="slide-subtitle">11. Podsumowanie</div>
           <h1 class="slide-title">Wnioski, trudności i zaskoczenia</h1>
         </div>
 

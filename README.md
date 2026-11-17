@@ -21,21 +21,26 @@ big-data-exercise-2026/
 │   │   └── Download_Column_Definitions.xlsx
 │   ├── processed/                 # Cleaned single-file Parquet (benchmark variant A)
 │   ├── partitioned/               # Hive-partitioned Parquet store (benchmark variant B)
-│   └── benchmark/                 # Scaled copies and raw benchmark timings (CSV)
+│   ├── benchmark/                 # Raw Milestone 2 tables (CSV) + scaled Parquet copies
+│   ├── profiling_results.txt      # Milestone 1: narrative-free profiling dump (presentation input)
+│   └── cleaning_benchmark_results.txt # Milestone 2: narrative-free cleaning/partition/A-B dump
 ├── notebooks/
 │   ├── 01_data_profiling.ipynb    # Milestone 1: Executed DuckDB profiling notebook
 │   └── 02_cleaning_partitioning.ipynb # Milestone 2: Polars cleaning, features, Parquet partitioning, A/B benchmark
 ├── presentation/
 │   ├── bts_flight_delays_profilowanie_i_audyt_danych.html             # Milestone 1 slides
 │   ├── bts_flight_delays_czyszczenie_partycjonowanie_benchmark.html   # Milestone 2 slides
-│   └── figures/                   # Charts exported by notebook 02 (used by the Milestone 2 slides)
+│   ├── figures/                   # Charts exported by notebook 02 (used by the Milestone 2 slides)
+│   └── results/                   # Committed copy of cleaning_benchmark_results.txt (attachable artifact)
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                  # Project paths and configuration
 │   ├── download_data.py           # Ingestion script (BTS Flight Delays from Kaggle)
 │   ├── profiling.py               # Reusable DuckDB SQL analytical profiling functions
 │   ├── cleaning.py                # Milestone 2: Polars cleaning rules, feature engineering, partitioned Parquet writer
-│   └── benchmark.py               # Milestone 2: A/B benchmark (scenarios, warm/cold cache, I/O accounting, scale-up)
+│   ├── benchmark.py               # Milestone 2: A/B benchmark (scenarios, warm/cold cache, I/O accounting, scale-up)
+│   ├── results_export.py          # Shared CSV/TXT dump helpers for presentation inputs
+│   └── export_m2_from_notebook.py # Rebuild M2 result TXT/CSV from executed notebook outputs if data/ was wiped
 ├── pyproject.toml                 # Project metadata and dependencies (uv)
 ├── uv.lock                        # Locked dependency versions
 └── README.md                      # Documentation
@@ -76,9 +81,14 @@ jupyter notebook notebooks/02_cleaning_partitioning.ipynb
 ```
 Select the **Python (Big Data .venv)** kernel. All cells have been pre-executed and contain hard numbers and visualizations.
 
-Notebook 02 runs the full A/B benchmark (~4 minutes): 1,120 timed runs on the real data and a 1x-50x scale-up experiment that writes ~2.6 GB of temporary Parquet to `data/benchmark/`. It also re-exports the charts in `presentation/figures/`. To re-execute it headlessly:
+Notebook 02 runs the full A/B benchmark (~4 minutes): 1,120 timed runs on the real data and a 1x-50x scale-up experiment that writes ~2.6 GB of temporary Parquet to `data/benchmark/`. It also re-exports the charts in `presentation/figures/` and dumps presentation inputs to `data/cleaning_benchmark_results.txt` (plus a copy under `presentation/results/`), same pattern as Milestone 1's `profiling_results.txt`. To re-execute it headlessly:
 ```bash
 cd notebooks && uv run --with nbconvert jupyter nbconvert --to notebook --execute --inplace 02_cleaning_partitioning.ipynb
+```
+
+If `data/` was wiped but the notebook still contains executed outputs, rebuild the result artifacts with:
+```bash
+uv run export-m2-results-from-notebook
 ```
 
 ### 5. Viewing & Exporting the Presentations (PDF)

@@ -1,0 +1,1 @@
+Na podstawie załączonego pliku txt z surowymi wynikami czyszczenia / partycjonowania i benchmarku A/B oraz notatnika Jupyter przygotuj prezentację HTML, z możliwością eksportu do PDF.
