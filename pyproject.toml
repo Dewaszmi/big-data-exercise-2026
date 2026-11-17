@@ -18,6 +18,7 @@ dependencies = [
 [project.scripts]
 download-bts-data = "src.download_data:main"
 profile-bts-data = "src.profiling:main"
+clean-bts-data = "src.cleaning:main"
 
 [build-system]
 requires = ["hatchling"]

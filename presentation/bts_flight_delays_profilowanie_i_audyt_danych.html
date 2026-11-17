@@ -1003,7 +1003,10 @@
               <li>
                 <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
                 <div>
-                  <strong>657 / 950 brakujących wpisów:</strong>
+                  <strong>657 / 950 brakujących wpisów:</strong> 657 wierszy to puste rekordy (wszystkie metryki
+                  NULL). Dodatkowe 293 braki w <span class="mono">arr_del15</span> to miesiące, w których wszystkie loty
+                  odwołano lub przekierowano. Kodowanie jest niespójne: 155 analogicznych wierszy ma
+                  <span class="mono">arr_del15 = 0</span> zamiast NULL.
                 </div>
               </li>
             </ul>

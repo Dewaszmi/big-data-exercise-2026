@@ -19,19 +19,23 @@ big-data-exercise-2026/
 │   ├── raw/                       # Downloaded raw datasets (gitignored)
 │   │   ├── Airline_Delay_Cause.csv
 │   │   └── Download_Column_Definitions.xlsx
-│   ├── processed/                 # Cleaned datasets
-│   └── partitioned/               # Partitioned Parquet store (Milestone 2)
+│   ├── processed/                 # Cleaned single-file Parquet (benchmark variant A)
+│   ├── partitioned/               # Hive-partitioned Parquet store (benchmark variant B)
+│   └── benchmark/                 # Scaled copies and raw benchmark timings (CSV)
 ├── notebooks/
-│   └── 01_data_profiling.ipynb    # Milestone 1: Executed DuckDB profiling notebook
+│   ├── 01_data_profiling.ipynb    # Milestone 1: Executed DuckDB profiling notebook
+│   └── 02_cleaning_partitioning.ipynb # Milestone 2: Polars cleaning, features, Parquet partitioning, A/B benchmark
 ├── presentation/
-│   ├── milestone_1_presentation.md   # Presentation deck in Markdown
-│   └── milestone_1_presentation.html # Modern HTML slides with "Save as PDF" button
+│   ├── bts_flight_delays_profilowanie_i_audyt_danych.html             # Milestone 1 slides
+│   ├── bts_flight_delays_czyszczenie_partycjonowanie_benchmark.html   # Milestone 2 slides
+│   └── figures/                   # Charts exported by notebook 02 (used by the Milestone 2 slides)
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                  # Project paths and configuration
 │   ├── download_data.py           # Ingestion script (BTS Flight Delays from Kaggle)
 │   ├── profiling.py               # Reusable DuckDB SQL analytical profiling functions
-│   └── create_notebook.py         # Notebook generator script
+│   ├── cleaning.py                # Milestone 2: Polars cleaning rules, feature engineering, partitioned Parquet writer
+│   └── benchmark.py               # Milestone 2: A/B benchmark (scenarios, warm/cold cache, I/O accounting, scale-up)
 ├── pyproject.toml                 # Project metadata and dependencies (uv)
 ├── uv.lock                        # Locked dependency versions
 └── README.md                      # Documentation
@@ -57,16 +61,30 @@ uv run download-bts-data
 # or: uv run python -m src.download_data
 ```
 
-### 3. Launching the Notebook
+### 3. Cleaning & Partitioning (Milestone 2)
+Writes `data/processed/bts_clean.parquet` and the Hive-partitioned `data/partitioned/bts_by_carrier/carrier=XX/` dataset (Snappy):
+```bash
+uv run clean-bts-data
+# or: uv run python -m src.cleaning
+```
+
+### 4. Launching the Notebooks
 Launch Jupyter or open VS Code / Jupyter Lab:
 ```bash
 jupyter notebook notebooks/01_data_profiling.ipynb
+jupyter notebook notebooks/02_cleaning_partitioning.ipynb
 ```
 Select the **Python (Big Data .venv)** kernel. All cells have been pre-executed and contain hard numbers and visualizations.
 
-### 4. Viewing & Exporting the Presentation (PDF)
-Open `presentation/milestone_1_presentation.html` in your web browser:
+Notebook 02 runs the full A/B benchmark (~4 minutes): 1,120 timed runs on the real data and a 1x-50x scale-up experiment that writes ~2.6 GB of temporary Parquet to `data/benchmark/`. It also re-exports the charts in `presentation/figures/`. To re-execute it headlessly:
 ```bash
-open presentation/milestone_1_presentation.html
+cd notebooks && uv run --with nbconvert jupyter nbconvert --to notebook --execute --inplace 02_cleaning_partitioning.ipynb
+```
+
+### 5. Viewing & Exporting the Presentations (PDF)
+Open the slides in your web browser:
+```bash
+xdg-open presentation/bts_flight_delays_profilowanie_i_audyt_danych.html             # Milestone 1
+xdg-open presentation/bts_flight_delays_czyszczenie_partycjonowanie_benchmark.html   # Milestone 2
 ```
 Click **"🖨️ Save as PDF / Print"** at the top or press `Cmd + P` to export the slides as a PDF for the instructor.
