@@ -15,6 +15,7 @@ MAX_AVG_DELAY_MINUTES = 24 * 60
 SUM_TOLERANCE = 1
 
 PARTITION_COLUMN = "carrier"
+SORTED_ROW_GROUP_SIZE = 16_384
 
 _cause_ct_sum = pl.sum_horizontal(CAUSE_CT_COLUMNS)
 _cause_delay_sum = pl.sum_horizontal(CAUSE_DELAY_COLUMNS)
@@ -161,6 +162,19 @@ def write_partitioned_parquet(
         compression=compression,
     )
     return root_path
+
+
+def write_sorted_parquet(
+    df: pl.DataFrame,
+    path: str | Path,
+    row_group_size: int = SORTED_ROW_GROUP_SIZE,
+    compression: str = "snappy",
+) -> Path:
+    path = Path(path)
+    df.sort(PARTITION_COLUMN, "year", "month").write_parquet(
+        path, compression=compression, row_group_size=row_group_size
+    )
+    return path
 
 
 def describe_partitions(root_path: str | Path) -> pl.DataFrame:

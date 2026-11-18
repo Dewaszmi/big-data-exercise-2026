@@ -193,3 +193,53 @@ format,size_mb,mean_ms,speedup_vs_csv
 raw CSV,50.7,264.7,1.0
 A: flat Parquet,33.6,11.8,22.4
 B: partitioned Parquet,35.2,10.4,25.6
+
+=== layout_storage_real ===
+layout,size_mb,files,row_groups,rows
+A: flat file (full scan),33.7,1,5,397111
+A': flat file sorted by carrier (row-group pruning),34.5,1,25,397111
+B: partitioned (pruning),35.2,38,50,397111
+
+=== io_sorted_vs_partitioned ===
+scenario,A_mb,A_sorted_mb,B_mb,A_sorted_reduction_pct,B_reduction_pct
+monthly_kpis[DL],3.971,0.499,0.321,87.4,91.9
+monthly_kpis[OO],3.971,0.632,0.393,84.1,90.1
+monthly_kpis[HA],3.971,0.301,0.039,92.4,99.0
+yearly_volume[DL],2.173,0.302,0.205,86.1,90.6
+top_airports[WN],2.298,0.361,0.174,84.3,92.4
+monthly_kpis[AA+DL+UA],3.971,1.339,0.841,66.3,78.8
+monthly_kpis[ALL],3.959,3.967,3.847,-0.2,2.8
+
+=== replication_storage ===
+copies,scale,rows,A_mb,A_sorted_mb,B_mb,A_sorted_vs_A_pct,B_vs_A_pct,A_bytes_per_row
+identical copies (old),5,1985555,153.0,120.8,116.9,-21.1,-23.5,80.8
+identical copies (old),20,7942220,611.5,384.8,434.7,-37.1,-28.9,80.7
+identical copies (old),50,19855550,1529.0,908.8,1064.5,-40.6,-30.4,80.7
+distinct copies (fixed),1,397111,30.8,30.3,33.9,-1.7,9.9,81.4
+distinct copies (fixed),5,1985555,158.4,171.6,175.6,8.4,10.9,83.6
+distinct copies (fixed),20,7942220,636.7,707.2,713.5,11.1,12.1,84.1
+distinct copies (fixed),50,19855550,1593.9,1766.7,1784.7,10.8,12.0,84.2
+
+=== replication_io ===
+copies,scale,scenario,A_mb,A_sorted_mb,B_mb,A_sorted_reduction_pct,B_reduction_pct,A_usd_month,A_sorted_usd_month,B_usd_month
+distinct copies (fixed),1,monthly_kpis[ALL],3.73,3.71,3.94,0.6,-5.7,1.78,1.77,1.88
+distinct copies (fixed),5,monthly_kpis[ALL],19.6,21.44,21.3,-9.4,-8.6,9.35,10.22,10.16
+distinct copies (fixed),20,monthly_kpis[ALL],79.57,87.31,87.01,-9.7,-9.3,37.94,41.63,41.49
+distinct copies (fixed),50,monthly_kpis[ALL],199.5,218.34,218.01,-9.4,-9.3,95.13,104.11,103.96
+distinct copies (fixed),1,monthly_kpis[DL],3.74,1.22,0.33,67.4,91.2,1.78,0.58,0.16
+distinct copies (fixed),5,monthly_kpis[DL],19.67,2.75,1.76,86.0,91.0,9.38,1.31,0.84
+distinct copies (fixed),20,monthly_kpis[DL],79.84,8.41,7.2,89.5,91.0,38.07,4.01,3.43
+distinct copies (fixed),50,monthly_kpis[DL],200.17,19.49,18.0,90.3,91.0,95.45,9.29,8.58
+distinct copies (fixed),1,monthly_kpis[HA],3.74,0.96,0.04,74.3,98.9,1.78,0.46,0.02
+distinct copies (fixed),5,monthly_kpis[HA],19.67,1.24,0.21,93.7,98.9,9.38,0.59,0.1
+distinct copies (fixed),20,monthly_kpis[HA],79.84,1.33,0.89,98.3,98.9,38.07,0.63,0.42
+distinct copies (fixed),50,monthly_kpis[HA],200.17,3.81,2.21,98.1,98.9,95.45,1.82,1.06
+identical copies (old),5,monthly_kpis[ALL],18.8,11.03,12.56,41.3,33.2,8.97,5.26,5.99
+identical copies (old),20,monthly_kpis[ALL],75.22,35.19,42.65,53.2,43.3,35.87,16.78,20.34
+identical copies (old),50,monthly_kpis[ALL],187.87,83.48,104.34,55.6,44.5,89.58,39.81,49.75
+identical copies (old),5,monthly_kpis[DL],18.87,1.6,1.25,91.5,93.4,9.0,0.76,0.6
+identical copies (old),20,monthly_kpis[DL],75.49,3.77,5.03,95.0,93.3,36.0,1.8,2.4
+identical copies (old),50,monthly_kpis[DL],188.54,8.75,10.49,95.4,94.4,89.9,4.17,5.0
+identical copies (old),5,monthly_kpis[HA],18.87,0.6,0.09,96.8,99.5,9.0,0.29,0.04
+identical copies (old),20,monthly_kpis[HA],75.49,0.36,0.27,99.5,99.6,36.0,0.17,0.13
+identical copies (old),50,monthly_kpis[HA],188.54,0.77,0.58,99.6,99.7,89.9,0.36,0.27

@@ -612,6 +612,91 @@
         break-inside: avoid;
       }
     }
+    .note {
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .code-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+      color: var(--text-main);
+    }
+
+    .code-box .muted {
+      color: var(--text-muted);
+    }
+
+    html.light .code-box {
+      background: rgba(15, 23, 42, 0.04);
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 9.5rem 1fr 5rem;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.7rem 0;
+      font-size: 0.88rem;
+    }
+
+    .bar-track {
+      background: rgba(148, 163, 184, 0.15);
+      border-radius: 6px;
+      height: 24px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+    }
+
+    .bar-value {
+      font-family: var(--font-mono);
+      text-align: right;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .mini-card {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .mini-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      line-height: 1.5;
+    }
+
+    @media print {
+      .bar-track,
+      .bar-fill {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .code-box {
+        background: #f5f5f5 !important;
+        color: #000 !important;
+      }
+    }
   </style>
 </head>
 
@@ -676,8 +761,8 @@
   <main>
     <div class="slides-wrapper">
 
-      <!-- SLAJD 1: Cel i zakres -->
-      <section class="slide active" data-slide="1" data-title="Cel i zakres Milestone 2">
+      <!-- SLAJD 1: Cel i wynik -->
+      <section class="slide active" data-slide="1" data-title="Cel i wynik">
         <div class="slide-header">
           <div class="slide-subtitle">01. Cel zadania</div>
           <h1 class="slide-title">Od surowego CSV do zoptymalizowanej hurtowni Parquet</h1>
@@ -689,70 +774,51 @@
               <div class="step-card">
                 <div class="step-number">KROK 1 · POLARS</div>
                 <strong>Czyszczenie</strong>
-                <p class="text-body" style="margin-top:0.5rem;">10 reguł biznesowych i telemetrycznych, leniwy plan
-                  <span class="mono">scan_csv</span>.</p>
+                <p class="text-body" style="margin-top:0.5rem;">10 reguł jakości danych</p>
               </div>
               <div class="step-card">
                 <div class="step-number">KROK 2 · POLARS</div>
                 <strong>Inżynieria cech</strong>
-                <p class="text-body" style="margin-top:0.5rem;">18 kolumn pochodnych, zweryfikowanych niezależnie w
-                  DuckDB.</p>
+                <p class="text-body" style="margin-top:0.5rem;">18 nowych kolumn</p>
               </div>
               <div class="step-card active-step">
                 <div class="step-number">KROK 3 · PYARROW</div>
                 <strong>Partycjonowanie</strong>
-                <p class="text-body" style="margin-top:0.5rem;">Hive <span class="mono">carrier=XX/</span>, kompresja
-                  Snappy.</p>
+                <p class="text-body" style="margin-top:0.5rem;"><span class="mono">carrier=XX/</span>, Snappy</p>
               </div>
               <div class="step-card active-step">
                 <div class="step-number">KROK 4 · DUCKDB + POLARS</div>
                 <strong>Benchmark A/B</strong>
-                <p class="text-body" style="margin-top:0.5rem;">Plik płaski vs. katalog partycjonowany, 2 silniki, 2
-                  tryby cache.</p>
+                <p class="text-body" style="margin-top:0.5rem;">plik płaski vs. partycje</p>
               </div>
             </div>
           </div>
 
-          <div class="tile col-6">
-            <div class="tile-title"><span>Dlaczego to robimy?</span></div>
-            <ul class="custom-list">
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-rose);"></div>
-                <div><strong>Surowe dane są niewiarygodne:</strong> puste miesiące, ujemne składniki opóźnień, średnie
-                  opóźnienie 53 h na lot. Model ML z Milestone 3 nauczyłby się błędów raportowania.</div>
-              </li>
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>CSV jest drogi w odczycie:</strong> każde zapytanie parsuje 51 MB tekstu. Parquet czyta
-                  tylko potrzebne kolumny (22× szybciej w naszym teście).</div>
-              </li>
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-blue);"></div>
-                <div><strong>Układ fizyczny = koszt:</strong> w chmurze (Athena, BigQuery) płaci się za przeskanowane
-                  bajty. Partycjonowanie decyduje, ile danych silnik w ogóle musi dotknąć.</div>
-              </li>
-            </ul>
-          </div>
-
-          <div class="tile col-3">
+          <div class="tile col-4">
             <div class="metric-label">Rekordy po czyszczeniu</div>
             <div class="metric-value">397 111</div>
             <span class="tag tag-emerald">99,72% zachowanych</span>
-            <p class="text-body" style="margin-top:0.75rem;">z 398 233 surowych wierszy (−1 122).</p>
+            <p class="text-body" style="margin-top:0.75rem;">z 398 233 surowych wierszy</p>
           </div>
 
-          <div class="tile col-3">
-            <div class="metric-label">Mniej przeskanowanych danych</div>
+          <div class="tile col-4">
+            <div class="metric-label">CSV → Parquet</div>
+            <div class="metric-value">22×</div>
+            <span class="tag tag-blue">szybciej</span>
+            <p class="text-body" style="margin-top:0.75rem;">264,7 ms → 11,8 ms dla zapytania z zadania</p>
+          </div>
+
+          <div class="tile col-4">
+            <div class="metric-label">Mniej danych do przeczytania</div>
             <div class="metric-value">−92%</div>
             <span class="tag tag-blue">zapytanie dla DL</span>
-            <p class="text-body" style="margin-top:0.75rem;">3,97 MB → 0,32 MB na zapytanie dzięki partition pruning.
-            </p>
+            <p class="text-body" style="margin-top:0.75rem;">3,97 MB → 0,32 MB dzięki partition pruning</p>
           </div>
         </div>
       </section>
 
       <!-- SLAJD 2: Czyszczenie -->
-      <section class="slide" data-slide="2" data-title="Czyszczenie danych w Polars">
+      <section class="slide" data-slide="2" data-title="Czyszczenie danych">
         <div class="slide-header">
           <div class="slide-subtitle">02. Czyszczenie w Polars</div>
           <h1 class="slide-title">Anomalie biznesowe i telemetryczne</h1>
@@ -761,112 +827,74 @@
         <div class="grid-layout">
           <div class="tile col-8">
             <div class="tile-title">
-              <span>Reguły odrzucenia (wiersz odpada, jeśli łamie dowolną regułę)</span>
+              <span>Wiersz odpada, jeśli łamie którąkolwiek regułę</span>
               <span class="tag tag-blue">src/cleaning.py</span>
             </div>
             <div class="data-table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Kategoria</th>
+                    <th>Typ</th>
                     <th>Reguła</th>
                     <th>Wiersze</th>
-                    <th>Interpretacja</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td><span class="tag tag-amber">biznes</span></td>
-                    <td class="mono">missing_measurements</td>
+                    <td>Brakujące pomiary (puste miesiące)</td>
                     <td class="mono">950</td>
-                    <td>657 pustych miesięcy + 293 bez <span class="mono">arr_del15</span></td>
                   </tr>
                   <tr>
                     <td><span class="tag tag-amber">biznes</span></td>
-                    <td class="mono">negative_values</td>
+                    <td>Ujemne minuty opóźnienia</td>
                     <td class="mono">2</td>
-                    <td>„Ujemny napiwek” BTS: <span class="mono">nas_delay = −19</span> min (B6, SLC 2003)</td>
                   </tr>
                   <tr>
                     <td><span class="tag tag-amber">biznes</span></td>
-                    <td class="mono">delay_minutes_sum_mismatch</td>
-                    <td class="mono">9</td>
-                    <td><span class="mono">arr_delay</span> ≠ suma 5 przyczyn (&gt; 1 min)</td>
-                  </tr>
-                  <tr>
-                    <td><span class="tag tag-amber">biznes</span></td>
-                    <td class="mono">cause_counts_sum_mismatch</td>
-                    <td class="mono">3</td>
-                    <td>Ułamkowe <span class="mono">*_ct</span> nie sumują się do <span class="mono">arr_del15</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><span class="tag tag-amber">biznes</span></td>
-                    <td class="mono">delayed / outcomes_exceed_flights</td>
-                    <td class="mono">0</td>
-                    <td>Więcej opóźnionych+odwołanych niż lotów</td>
+                    <td>Składniki opóźnienia nie sumują się do całości</td>
+                    <td class="mono">12</td>
                   </tr>
                   <tr>
                     <td><span class="tag tag-purple">telemetria</span></td>
-                    <td class="mono">no_operated_flights</td>
+                    <td>Żaden lot się nie odbył (wszystkie odwołane lub przekierowane)</td>
                     <td class="mono">448</td>
-                    <td>Wszystkie loty odwołane/przekierowane, odpowiednik „kursu &lt; 1 min”</td>
                   </tr>
                   <tr>
                     <td><span class="tag tag-purple">telemetria</span></td>
-                    <td class="mono">avg_delay_above_24h</td>
+                    <td>Ponad 24 h opóźnienia na opóźniony lot (np. 53 h)</td>
                     <td class="mono">5</td>
-                    <td>Np. MQ/MGM 06.2022: 3 174 min (53 h) na opóźniony lot</td>
-                  </tr>
-                  <tr>
-                    <td><span class="tag tag-purple">telemetria</span></td>
-                    <td class="mono">avg_delay_below_15min / delay_without_delayed</td>
-                    <td class="mono">0</td>
-                    <td>Definicja BTS: opóźniony = co najmniej 15 min</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            <p class="note" style="margin-top:0.75rem;">Cztery pozostałe reguły (np. więcej opóźnionych lotów niż
+              wszystkich) nie znalazły naruszeń.</p>
           </div>
 
           <div class="tile col-4">
             <div class="tile-title"><span>Lejek czyszczenia</span></div>
             <div class="data-table-wrapper">
               <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Etap</th>
-                    <th>Wiersze</th>
-                    <th>Odrzucone</th>
-                  </tr>
-                </thead>
                 <tbody>
                   <tr>
                     <td>Surowe CSV</td>
                     <td class="mono">398 233</td>
-                    <td class="mono">–</td>
                   </tr>
                   <tr>
                     <td>Po regułach biznesowych</td>
-                    <td class="mono">397 271</td>
-                    <td class="mono" style="color:var(--accent-amber);">962</td>
+                    <td class="mono">397 271 <span style="color:var(--accent-amber);">(−962)</span></td>
                   </tr>
                   <tr>
                     <td>Po regułach telemetrycznych</td>
-                    <td class="mono">397 111</td>
-                    <td class="mono" style="color:var(--accent-purple);">160</td>
+                    <td class="mono">397 111 <span style="color:var(--accent-purple);">(−160)</span></td>
                   </tr>
                 </tbody>
               </table>
             </div>
             <p class="text-body" style="margin-top:1rem;">
-              Taksówkowe przykłady z treści zadania nie istnieją w BTS (brak napiwków i znaczników czasu), więc
-              przenieśliśmy je na niezmienniki tej domeny: ujemne składniki opóźnień zamiast ujemnych napiwków,
-              miesiące bez wykonanych lotów zamiast przejazdów poniżej minuty.
-            </p>
-            <p class="text-body">
-              Reguły są słownikiem wyrażeń <span class="mono">pl.Expr</span>: ten sam kod liczy raport anomalii i
-              filtruje dane w jednym leniwym przebiegu.
+              Przykłady z zadania przenieśliśmy na dane lotnicze: ujemne minuty opóźnienia zamiast ujemnych
+              napiwków, miesiące bez lotów zamiast kursów krótszych niż minuta.
             </p>
           </div>
         </div>
@@ -876,141 +904,91 @@
       <section class="slide" data-slide="3" data-title="Inżynieria cech">
         <div class="slide-header">
           <div class="slide-subtitle">03. Feature Engineering</div>
-          <h1 class="slide-title">18 kolumn pochodnych i ich weryfikacja</h1>
+          <h1 class="slide-title">18 nowych kolumn, każda sprawdzona drugi raz</h1>
         </div>
 
         <div class="grid-layout">
-          <div class="tile col-6">
-            <div class="tile-title"><span>Kluczowe cechy</span><span class="tag tag-blue">add_features()</span></div>
+          <div class="tile col-5" style="grid-column: span 5;">
+            <div class="tile-title"><span>Najważniejsze cechy</span><span class="tag tag-blue">add_features()</span></div>
             <div class="data-table-wrapper">
-              <table class="data-table">
+              <table class="data-table wrap-table">
                 <thead>
                   <tr>
                     <th>Cecha</th>
-                    <th>Definicja</th>
+                    <th>Znaczenie</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td class="mono">avg_delay_minutes_per_delayed_flight</td>
-                    <td class="mono">arr_delay / arr_del15</td>
+                    <td>średnie opóźnienie opóźnionego lotu (odpowiednik <span class="mono">trip_duration</span>)</td>
                   </tr>
                   <tr>
                     <td class="mono">period_start, quarter, season</td>
-                    <td>1. dzień miesiąca, kwartał, pora roku</td>
+                    <td>czas (odpowiednik <span class="mono">pickup_hour</span>; dane są miesięczne)</td>
                   </tr>
                   <tr>
                     <td class="mono">is_peak_travel_month, is_covid_period</td>
-                    <td>VI–VIII i XII; III 2020 – XII 2021</td>
+                    <td>wakacje i grudzień; III 2020 – XII 2021</td>
                   </tr>
                   <tr>
-                    <td class="mono">operated_flights</td>
-                    <td class="mono">arr_flights − cancelled − diverted</td>
+                    <td class="mono">delay_rate, cancellation_rate</td>
+                    <td>udział lotów opóźnionych i odwołanych</td>
                   </tr>
                   <tr>
-                    <td class="mono">delay / cancellation / diversion_rate</td>
-                    <td>udział lotów opóźnionych, odwołanych, przekierowanych</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">*_delay_share, dominant_delay_cause</td>
-                    <td>udział minut każdej z 5 przyczyn, przyczyna dominująca</td>
+                    <td class="mono">dominant_delay_cause</td>
+                    <td>przyczyna z największą liczbą minut</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p class="text-body" style="margin-top:0.75rem;">
-              Odpowiedniki cech z zadania: <span class="mono">trip_duration_minutes</span> →
-              <span class="mono">avg_delay_minutes_per_delayed_flight</span>, <span class="mono">pickup_hour</span> →
-              <span class="mono">period_start / quarter / season</span>. Dane BTS są miesięczne, więc najdrobniejszą
-              jednostką czasu jest miesiąc.
+            <p class="text-body" style="margin-top:1rem;">
+              <span class="tag tag-emerald">0 niezgodności</span>&nbsp; Każdą cechę policzyliśmy drugi raz, w SQL
+              w DuckDB: 13 testów × 397 111 wierszy.
             </p>
           </div>
 
-          <div class="tile col-6">
-            <div class="tile-title"><span>Sezonowość wyliczonych cech (2003–2025)</span></div>
+          <div class="tile col-7" style="grid-column: span 7;">
+            <div class="tile-title"><span>Sezonowość opóźnień (2003–2025)</span></div>
             <img class="figure" src="figures/features_seasonality.png" alt="Sezonowość opóźnień">
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Przykład: Delta (DL), Atlanta (ATL), lipiec 2019</span></div>
-            <p class="text-body mono" style="font-size:0.82rem;">
-              arr_flights = 21 839 · arr_del15 = 3 506 · cancelled = 78 · diverted = 74 · arr_delay = 298 239 min
-            </p>
-            <ul class="custom-list">
-              <li>
-                <div class="bullet-dot"></div>
-                <div><strong>operated_flights</strong> = 21 839 − 78 − 74 = <span class="mono">21 687</span></div>
-              </li>
-              <li>
-                <div class="bullet-dot"></div>
-                <div><strong>delay_rate</strong> = 3 506 / 21 839 = <span class="mono">16,05%</span></div>
-              </li>
-              <li>
-                <div class="bullet-dot"></div>
-                <div><strong>avg_delay_minutes_per_delayed_flight</strong> = 298 239 / 3 506 = <span
-                    class="mono">85,07 min</span></div>
-              </li>
-              <li>
-                <div class="bullet-dot"></div>
-                <div><strong>dominant_delay_cause</strong> = <span class="mono">late_aircraft</span>,
-                  <strong>season</strong> = summer, <strong>quarter</strong> = 3</div>
-              </li>
-            </ul>
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Kontrola poprawności</span><span class="tag tag-emerald">0 błędów</span>
-            </div>
-            <p class="text-body">
-              Każdą cechę wyliczyliśmy drugi raz, niezależnie, w SQL w DuckDB (inny silnik niż Polars) i
-              porównaliśmy wiersz po wierszu: <strong>13 testów × 397 111 wierszy, 0 niezgodności</strong>.
-            </p>
-            <p class="text-body">
-              Sprawdzane są też niezmienniki domenowe: udziały przyczyn sumują się do 1, a średnie opóźnienie
-              opóźnionego lotu mieści się w przedziale [15 min, 24 h].
-            </p>
           </div>
         </div>
       </section>
 
       <!-- SLAJD 4: Partycjonowanie -->
-      <section class="slide" data-slide="4" data-title="Partycjonowanie fizyczne">
+      <section class="slide" data-slide="4" data-title="Partycjonowanie">
         <div class="slide-header">
           <div class="slide-subtitle">04. Partycjonowanie fizyczne</div>
           <h1 class="slide-title">Układ Hive <span class="mono">carrier=XX/</span> z kompresją Snappy</h1>
         </div>
 
         <div class="grid-layout">
-          <div class="tile col-4">
+          <div class="tile col-5" style="grid-column: span 5;">
             <div class="tile-title"><span>Struktura na dysku</span><span class="tag tag-emerald">zweryfikowana</span>
             </div>
-            <div
-              style="background:rgba(0,0,0,0.35); border:1px solid var(--border-color); border-radius:8px; padding:1rem; font-family:var(--font-mono); font-size:0.78rem; line-height:1.6; white-space:pre; overflow-x:auto;">data/
+            <div class="code-box">data/
 ├── processed/
-│   └── bts_clean.parquet   <span style="color:var(--text-muted);"># A: 33,6 MB</span>
-└── partitioned/bts_by_carrier/  <span style="color:var(--text-muted);"># B: 35,2 MB</span>
-    ├── carrier=9E/&lt;uuid&gt;-0.parquet
-    ├── carrier=AA/&lt;uuid&gt;-0.parquet
-    ├── carrier=DL/&lt;uuid&gt;-0.parquet
-    ├── ...           <span style="color:var(--text-muted);"># 38 katalogów</span>
-    └── carrier=ZW/&lt;uuid&gt;-0.parquet</div>
+│   ├── bts_clean.parquet         <span class="muted"># A:  33,7 MB</span>
+│   └── bts_clean_sorted.parquet  <span class="muted"># A′: 34,5 MB</span>
+└── partitioned/bts_by_carrier/   <span class="muted"># B:  35,2 MB</span>
+    ├── carrier=AA/…parquet
+    ├── carrier=DL/…parquet
+    └── …                         <span class="muted"># 38 katalogów</span></div>
             <p class="text-body" style="margin-top:0.75rem;">
-              Asercje w notatniku: 38 katalogów = 38 przewoźników, kompresja każdego pliku = <span
-                class="mono">SNAPPY</span>, odczyt zwrotny 397 111 wierszy. Kolumna <span class="mono">carrier</span>
-              istnieje tylko w nazwie katalogu, nie w plikach.
+              Kolumna <span class="mono">carrier</span> istnieje tylko w nazwie katalogu. Asercje w notatniku:
+              38 katalogów, kompresja Snappy, 397 111 wierszy po odczycie.
             </p>
           </div>
 
-          <div class="tile col-8">
-            <div class="tile-title"><span>Wybór klucza partycjonowania</span></div>
+          <div class="tile col-7" style="grid-column: span 7;">
+            <div class="tile-title"><span>Dlaczego <span class="mono">carrier</span>?</span></div>
             <div class="data-table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr>
                     <th>Klucz</th>
                     <th>Partycje</th>
-                    <th>Min / mediana / max wierszy</th>
-                    <th>Śr. rozmiar pliku</th>
+                    <th>Śr. plik</th>
                     <th>Ocena</th>
                   </tr>
                 </thead>
@@ -1018,77 +996,44 @@
                   <tr>
                     <td class="mono"><strong>carrier</strong></td>
                     <td class="mono">38</td>
-                    <td class="mono">15 / 6 931 / 45 974</td>
-                    <td class="mono">~909 KB</td>
+                    <td class="mono">~900 KB</td>
                     <td><span class="tag tag-emerald">wybrany</span></td>
                   </tr>
                   <tr>
                     <td class="mono">year</td>
                     <td class="mono">23</td>
-                    <td class="mono">1 916 / 17 554 / 25 822</td>
                     <td class="mono">~1,5 MB</td>
                     <td><span class="tag tag-amber">inny wzorzec zapytań</span></td>
                   </tr>
                   <tr>
-                    <td class="mono">airport</td>
-                    <td class="mono">420</td>
-                    <td class="mono">1 / 384 / 3 687</td>
-                    <td class="mono">~82 KB</td>
-                    <td><span class="tag tag-rose">small files</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono">carrier + year</td>
-                    <td class="mono">439</td>
-                    <td class="mono">3 / 887 / 2 958</td>
-                    <td class="mono">~79 KB</td>
-                    <td><span class="tag tag-rose">small files</span></td>
+                    <td class="mono">airport / carrier + year</td>
+                    <td class="mono">420 / 439</td>
+                    <td class="mono">~80 KB</td>
+                    <td><span class="tag tag-rose">za małe pliki</span></td>
                   </tr>
                 </tbody>
               </table>
             </div>
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Uzasadnienie biznesowe</span></div>
-            <ul class="custom-list">
+            <ul class="custom-list" style="margin-top:1rem;">
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>Wzorzec zapytań:</strong> raporty punktualności, benchmarking linii i skargi do DOT są
-                  liczone per przewoźnik, więc prawie każde zapytanie ma <span class="mono">WHERE carrier = …</span>.
-                </div>
+                <div>Raporty punktualności i porównania linii filtrują po przewoźniku.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-blue);"></div>
-                <div><strong>Niska kardynalność:</strong> 38 wartości daje niewiele katalogów i pliki na tyle duże, że
-                  nie powstaje problem małych plików.</div>
+                <div>38 wartości to mało katalogów i pliki, które nie są za małe.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-purple);"></div>
-                <div><strong>Granica uprawnień:</strong> analitykom linii można nadać dostęp tylko do prefiksu
-                  <span class="mono">carrier=XX/</span> (polityka IAM na S3), bez osobnych kopii danych.
-                </div>
+                <div>Dostęp dla analityków jednej linii to jeden prefiks <span class="mono">carrier=XX/</span>.</div>
               </li>
             </ul>
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Lekcja: kolejność wierszy przed zapisem</span><span
-                class="tag tag-amber">pułapka</span></div>
-            <p class="text-body">
-              <span class="mono">pyarrow.write_to_dataset</span> tworzy osobną grupę wierszy dla każdej paczki danych
-              wejściowych w każdej partycji. Na nieposortowanych danych dało to <strong>276 grup wierszy
-                zamiast 50</strong> i zbiór <strong>większy o 22%</strong> (43,1 MB vs 35,2 MB).
-            </p>
-            <p class="text-body">
-              Rozwiązanie: <span class="mono">df.sort("carrier", "year", "month")</span> przed zapisem. Dane
-              uporządkowane według klucza kompresują się lepiej.
-            </p>
           </div>
         </div>
       </section>
 
       <!-- SLAJD 5: Metodologia -->
-      <section class="slide" data-slide="5" data-title="Metodologia benchmarku A/B">
+      <section class="slide" data-slide="5" data-title="Metodologia benchmarku">
         <div class="slide-header">
           <div class="slide-subtitle">05. Benchmark A/B: metodologia</div>
           <h1 class="slide-title">Jak mierzyliśmy, żeby wynik był wiarygodny</h1>
@@ -1096,29 +1041,30 @@
 
         <div class="grid-layout">
           <div class="tile col-6">
-            <div class="tile-title"><span>Warianty</span></div>
+            <div class="tile-title"><span>Co porównujemy</span></div>
             <ul class="custom-list">
               <li>
                 <div class="bullet-dot" style="background:#94a3b8;"></div>
-                <div><strong>A – plik płaski (full scan):</strong> jeden plik Parquet. Każda z jego 3 grup wierszy
-                  zawiera przewoźników od <span class="mono">9E</span> do <span class="mono">YV</span>/<span class="mono">ZW</span>, więc
-                  statystyki min/max nie pozwalają niczego pominąć.</div>
+                <div><strong>A – plik płaski:</strong> każda grupa wierszy zawiera wszystkich przewoźników, więc
+                  zapytanie czyta cały plik.</div>
               </li>
               <li>
                 <div class="bullet-dot"></div>
-                <div><strong>B – katalog partycjonowany (partition pruning):</strong> filtr na <span
-                    class="mono">carrier</span> jest rozstrzygany po nazwach katalogów, a DuckDB pokazuje w planie
-                  <span class="mono">Scanning Files: 1/38</span>.
-                </div>
+                <div><strong>B – partycje:</strong> filtr na przewoźniku wybiera katalog (DuckDB:
+                  <span class="mono">Scanning Files: 1/38</span>).</div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
+                <div><strong>A′ – kontrola:</strong> jeden plik posortowany jak B. Dla niego liczymy, ile danych
+                  czyta zapytanie (slajd 8).</div>
               </li>
             </ul>
-            <div
-              style="margin-top:1rem; background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1rem; font-family:var(--font-mono); font-size:0.8rem; line-height:1.55; white-space:pre;">SELECT month,
-       AVG(avg_delay_minutes_per_delayed_flight) AS avg_delay_min,
-       AVG(delay_rate) AS avg_delay_rate
+            <div class="code-box" style="margin-top:1rem; border-color:var(--border-highlight);">SELECT month,
+       AVG(avg_delay_minutes_per_delayed_flight),
+       AVG(delay_rate)
 FROM {A | B}
-WHERE carrier = 'DL'        -- odpowiednik VendorID = 1
-GROUP BY month ORDER BY month</div>
+WHERE carrier = 'DL'     -- odpowiednik VendorID = 1
+GROUP BY month</div>
           </div>
 
           <div class="tile col-6">
@@ -1127,29 +1073,26 @@ GROUP BY month ORDER BY month</div>
             <ul class="custom-list">
               <li>
                 <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
-                <div><strong>2 silniki:</strong> DuckDB (SQL) i Polars (lazy API), to samo zapytanie logiczne.</div>
+                <div><strong>2 silniki:</strong> DuckDB (SQL) i Polars (lazy API).</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-cyan);"></div>
-                <div><strong>7 scenariuszy:</strong> zapytanie z zadania (DL), duży (OO, 11,6% wierszy) i mały (HA,
-                  1,1%) przewoźnik, inne kształty zapytań, filtr <span class="mono">IN</span> na 3 przewoźników oraz
-                  <strong>zapytanie kontrolne bez filtra</strong>.</div>
+                <div><strong>7 scenariuszy,</strong> w tym zapytanie kontrolne bez filtra, któremu partycje nie
+                  mogą pomóc.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Warm i cold cache:</strong> w trybie cold przed każdym pomiarem usuwamy pliki z page
-                  cache systemu (<span class="mono">posix_fadvise(DONTNEED)</span>). Wyłączyliśmy też wewnętrzny cache
-                  plików DuckDB.</div>
+                <div><strong>Cache ciepły i zimny:</strong> w trybie zimnym przed każdym pomiarem usuwamy pliki z
+                  pamięci systemu.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>20 powtórzeń</strong> po rozgrzewce; kolejność A/B jest losowana w każdym powtórzeniu.
-                  Przed pomiarem sprawdzamy, że A i B zwracają identyczny wynik.</div>
+                <div><strong>20 powtórzeń w losowej kolejności.</strong> Przed pomiarem sprawdzamy, że A i B
+                  zwracają ten sam wynik.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-purple);"></div>
-                <div><strong>Metryki:</strong> średnia ± odchylenie standardowe, mediana, p95. <strong>Zysk czasu =
-                    (A − B) / A</strong>. Łącznie 1 120 pomiarów na danych rzeczywistych i 960 w teście skali.</div>
+                <div><strong>Zysk czasu = (A − B) / A</strong> na średniej z przebiegów.</div>
               </li>
             </ul>
           </div>
@@ -1157,414 +1100,242 @@ GROUP BY month ORDER BY month</div>
       </section>
 
       <!-- SLAJD 6: Wyniki na danych rzeczywistych -->
-      <section class="slide" data-slide="6" data-title="Wyniki A/B na danych rzeczywistych">
+      <section class="slide" data-slide="6" data-title="Wyniki na 34 MB">
         <div class="slide-header">
-          <div class="slide-subtitle">06. Benchmark A/B: dane rzeczywiste (397 tys. wierszy, 34 MB)</div>
-          <h1 class="slide-title">Zapytanie z zadania i 7 scenariuszy</h1>
+          <div class="slide-subtitle">06. Wyniki: dane rzeczywiste (397 tys. wierszy, 34 MB)</div>
+          <h1 class="slide-title">Na 34 MB partycjonowanie prawie nie przyspiesza</h1>
         </div>
 
         <div class="grid-layout">
           <div class="tile col-5" style="grid-column: span 5;">
-            <div class="tile-title"><span>Tabela porównawcza: <span class="mono">carrier = 'DL'</span></span><span
-                class="tag tag-blue">20 przebiegów</span></div>
+            <div class="tile-title"><span>Zapytanie z zadania (DL)</span><span class="tag tag-blue">20 przebiegów</span>
+            </div>
             <div class="data-table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr>
                     <th>Silnik / cache</th>
-                    <th>A płaski [ms]</th>
-                    <th>B partycje [ms]</th>
+                    <th>A [ms]</th>
+                    <th>B [ms]</th>
                     <th>Zysk</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>DuckDB / warm</td>
-                    <td class="mono">10,6 ± 1,4</td>
-                    <td class="mono">10,4 ± 0,7</td>
-                    <td class="mono" style="color:var(--accent-emerald);">+1,8%</td>
+                    <td>DuckDB / ciepły</td>
+                    <td class="mono">10,6</td>
+                    <td class="mono">10,4</td>
+                    <td class="mono" style="color:var(--accent-emerald);">+2%</td>
                   </tr>
                   <tr>
-                    <td>DuckDB / cold</td>
-                    <td class="mono">20,7 ± 1,2</td>
-                    <td class="mono">16,1 ± 1,5</td>
-                    <td class="mono" style="color:var(--accent-emerald);">+22,2%</td>
+                    <td>DuckDB / zimny</td>
+                    <td class="mono">20,7</td>
+                    <td class="mono">16,1</td>
+                    <td class="mono" style="color:var(--accent-emerald);">+22%</td>
                   </tr>
                   <tr>
-                    <td>Polars / warm</td>
-                    <td class="mono">8,5 ± 0,5</td>
-                    <td class="mono">10,0 ± 0,9</td>
-                    <td class="mono" style="color:var(--accent-rose);">−17,8%</td>
+                    <td>Polars / ciepły</td>
+                    <td class="mono">8,5</td>
+                    <td class="mono">10,0</td>
+                    <td class="mono" style="color:var(--accent-rose);">−18%</td>
                   </tr>
                   <tr>
-                    <td>Polars / cold</td>
-                    <td class="mono">14,5 ± 1,1</td>
-                    <td class="mono">40,3 ± 1,6</td>
-                    <td class="mono" style="color:var(--accent-rose);">−177,6%</td>
+                    <td>Polars / zimny</td>
+                    <td class="mono">14,5</td>
+                    <td class="mono">40,3</td>
+                    <td class="mono" style="color:var(--accent-rose);">−178%</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p class="text-body" style="margin-top:1rem;">
-              Przy 34 MB wynik jest mieszany. DuckDB zyskuje do <strong>45%</strong> (HA, cold) i <strong>40%</strong>
-              (3 przewoźników, cold), natomiast Polars przegrywa w trybie cold w każdym scenariuszu. Zapytanie
-              kontrolne bez filtra jest wolniejsze na B we wszystkich konfiguracjach, czego się spodziewaliśmy.
-            </p>
-            <img class="figure" src="figures/ab_real_gain_heatmap.png" alt="Heatmapa zysku czasu">
+            <ul class="custom-list" style="margin-top:1rem;">
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
+                <div>Cały plik A to ~4 MB, czytane w kilka ms. O czasie decydują stałe koszty: otwarcie plików i
+                  odczyt stopek.</div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
+                <div>DuckDB otwiera tylko <span class="mono">carrier=DL/</span>. Polars najpierw czyta stopki
+                  wszystkich 38 plików (32 ms na zimno).</div>
+              </li>
+              <li>
+                <div class="bullet-dot" style="background:var(--accent-rose);"></div>
+                <div>−598% dla AA+DL+UA: Polars rozbija GROUP BY po kolumnie partycji na 38 podplanów.</div>
+              </li>
+            </ul>
           </div>
 
           <div class="tile col-7" style="grid-column: span 7;">
-            <div class="tile-title"><span>Średnia latencja ± odchylenie, etykieta = zysk B względem A</span></div>
-            <img class="figure" src="figures/ab_real_latency.png" alt="Wyniki A/B na danych rzeczywistych">
+            <div class="tile-title"><span>Zysk czasu B względem A, wszystkie scenariusze</span></div>
+            <img class="figure" src="figures/ab_real_gain_heatmap.png" alt="Heatmapa zysku czasu">
+            <p class="note" style="margin-top:0.75rem;">Zapytanie kontrolne bez filtra jest na B wolniejsze
+              wszędzie, czego się spodziewaliśmy.</p>
           </div>
         </div>
       </section>
 
-      <!-- SLAJD 7: Dlaczego -->
-      <section class="slide" data-slide="7" data-title="Dlaczego przy 34 MB zysk jest mały">
+      <!-- SLAJD 7: Skalowanie -->
+      <section class="slide" data-slide="7" data-title="Test skali 1×–50×">
         <div class="slide-header">
-          <div class="slide-subtitle">07. Interpretacja</div>
-          <h1 class="slide-title">Dlaczego przy 34 MB partycjonowanie prawie nie pomaga</h1>
-        </div>
-
-        <div class="grid-layout">
-          <div class="tile col-4">
-            <div class="metric-label">Cały skan płaskiego pliku</div>
-            <div class="metric-value">~4 MB</div>
-            <span class="tag tag-amber">3 kolumny × 3 grupy wierszy</span>
-            <p class="text-body" style="margin-top:0.75rem;">
-              Dzięki formatowi kolumnowemu nawet full scan czyta tylko ~4 MB skompresowanych danych, co z page cache
-              zajmuje kilka milisekund. Przy takich czasach decydują stałe koszty obsługi każdego pliku: listowanie
-              katalogów, otwarcie pliku, parsowanie stopki.
-            </p>
-          </div>
-
-          <div class="tile col-4">
-            <div class="tile-title"><span>DuckDB: pruning przed otwarciem</span><span
-                class="tag tag-emerald">1/38 plików</span></div>
-            <p class="text-body">
-              DuckDB dopasowuje filtr <span class="mono">carrier = 'DL'</span> do nazw katalogów i otwiera wyłącznie
-              <span class="mono">carrier=DL/</span>. Dlatego w trybie cold wygrywa w większości scenariuszy, nawet na małych danych.
-            </p>
-          </div>
-
-          <div class="tile col-4">
-            <div class="tile-title"><span>Polars: najpierw wszystkie stopki</span><span
-                class="tag tag-rose">38 odczytów</span></div>
-            <p class="text-body">
-              Polars przy planowaniu czyta stopki wszystkich 38 plików, żeby ustalić schemat, i dopiero potem
-              przycina partycje. Pomiar (cold, mediana): samo ustalenie schematu zajmuje <strong>32,4 ms</strong>,
-              zapytanie przez katalog główny <strong>40,7 ms</strong>, a bezpośrednio przez <span
-                class="mono">carrier=DL/</span> tylko <strong>8,3 ms</strong>.
-            </p>
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Polars: GROUP BY po kolumnie partycji</span><span
-                class="tag tag-rose">−598%</span></div>
-            <p class="text-body">
-              Scenariusz <span class="mono">AA+DL+UA</span> grupuje po <span class="mono">carrier, month</span>.
-              Optymalizator Polars przepisuje wtedy agregację na <span class="mono">UNION</span> 38 podplanów, po
-              jednym na plik, z czego 35 jest pustych (widać to w <span class="mono">.explain()</span>). Kosztuje
-              to ~80 ms niezależnie od pruningu. Wynik pokazuje, że korzyść z układu danych zależy też od silnika.
-            </p>
-          </div>
-
-          <div class="tile col-6">
-            <div class="tile-title"><span>Kontekst: CSV vs. Parquet (DuckDB, warm)</span></div>
-            <div class="data-table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Format</th>
-                    <th>Rozmiar</th>
-                    <th>Średni czas</th>
-                    <th>Przyspieszenie</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Surowy CSV</td>
-                    <td class="mono">50,7 MB</td>
-                    <td class="mono">264,7 ms</td>
-                    <td class="mono">1×</td>
-                  </tr>
-                  <tr>
-                    <td>A: płaski Parquet</td>
-                    <td class="mono">33,6 MB</td>
-                    <td class="mono">11,8 ms</td>
-                    <td class="mono">22×</td>
-                  </tr>
-                  <tr>
-                    <td>B: partycjonowany Parquet</td>
-                    <td class="mono">35,2 MB</td>
-                    <td class="mono">10,4 ms</td>
-                    <td class="mono">26×</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-body" style="margin-top:0.75rem;">Na tej skali największy zysk daje przejście z CSV na
-              format kolumnowy. Partycjonowanie dokłada niewiele.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- SLAJD 8: Skalowanie -->
-      <section class="slide" data-slide="8" data-title="Test skali 1×–50×">
-        <div class="slide-header">
-          <div class="slide-subtitle">08. Benchmark A/B: test skali</div>
-          <h1 class="slide-title">Przy jakiej skali partycjonowanie się opłaca?</h1>
+          <div class="slide-subtitle">07. Wyniki: test skali</div>
+          <h1 class="slide-title">Przy milionach wierszy partycje wygrywają wyraźnie</h1>
         </div>
 
         <div class="grid-layout">
           <div class="tile col-12">
-            <div class="tile-title"><span>Zapytanie z zadania (DL): latencja i zysk czasu wraz ze wzrostem danych</span>
+            <div class="tile-title"><span>Zapytanie z zadania (DL) przy 1×–50× danych</span>
               <span class="tag tag-blue">10 przebiegów / punkt</span></div>
             <img class="figure" src="figures/scale_latency_gain.png" alt="Test skali">
           </div>
 
-          <div class="tile col-7" style="grid-column: span 7;">
-            <div class="tile-title"><span>Zysk czasu B vs. A dla <span class="mono">carrier = 'DL'</span></span></div>
-            <div class="data-table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Skala</th>
-                    <th>Wiersze</th>
-                    <th>DuckDB warm</th>
-                    <th>DuckDB cold</th>
-                    <th>Polars warm</th>
-                    <th>Polars cold</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="mono">1×</td>
-                    <td class="mono">0,4 mln</td>
-                    <td class="mono">10,0 → 9,8 ms (+2%)</td>
-                    <td class="mono">16,5 → 13,0 (+21%)</td>
-                    <td class="mono" style="color:var(--accent-rose);">8,1 → 9,6 (−19%)</td>
-                    <td class="mono" style="color:var(--accent-rose);">13,5 → 32,1 (−139%)</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">5×</td>
-                    <td class="mono">2,0 mln</td>
-                    <td class="mono">18,6 → 12,4 (+33%)</td>
-                    <td class="mono">44,4 → 19,8 (+56%)</td>
-                    <td class="mono">19,7 → 11,8 (+40%)</td>
-                    <td class="mono" style="color:var(--accent-rose);">28,7 → 41,4 (−45%)</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">20×</td>
-                    <td class="mono">7,9 mln</td>
-                    <td class="mono">57,6 → 16,4 (+72%)</td>
-                    <td class="mono">139,3 → 26,5 (+81%)</td>
-                    <td class="mono">63,4 → 16,9 (+73%)</td>
-                    <td class="mono">91,0 → 60,3 (+34%)</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">50×</td>
-                    <td class="mono">19,9 mln</td>
-                    <td class="mono" style="color:var(--accent-emerald);">132,8 → 20,8 (+84%)</td>
-                    <td class="mono" style="color:var(--accent-emerald);">335,0 → 39,5 (+88%)</td>
-                    <td class="mono" style="color:var(--accent-emerald);">160,8 → 31,5 (+80%)</td>
-                    <td class="mono" style="color:var(--accent-emerald);">245,9 → 76,3 (+69%)</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-body" style="margin-top:0.75rem;">
-              Zbiór powielono 1×–50× strumieniowo w DuckDB (<span class="mono">COPY … TO</span>). Oba warianty
-              zapisano z identycznymi ustawieniami: Snappy, grupy po 122 880 wierszy. Dla porównania: tabela BTS na
-              poziomie pojedynczych lotów ma ~7 mln wierszy rocznie.
-            </p>
-          </div>
-
-          <div class="tile col-5" style="grid-column: span 5;">
-            <div class="tile-title"><span>Obserwacje</span></div>
+          <div class="tile col-12">
             <ul class="custom-list">
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>A rośnie liniowo, B prawie stoi:</strong> przy 50× wariant B czyta tylko partycję
-                  DL (~1/12 danych). Mały przewoźnik HA zyskuje nawet <strong>95%</strong> (393 → 18 ms).</div>
+                <div><strong>A rośnie liniowo, B czyta tylko partycję DL.</strong> Przy 50× (20 mln wierszy)
+                  DuckDB na zimno: 335 ms → 40 ms.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-blue);"></div>
-                <div><strong>Punkt opłacalności:</strong> DuckDB zyskuje już przy 1× (cold), wyraźnie od 5× (~2 mln
-                  wierszy). Polars warm od 5×, Polars cold dopiero od 20× (~8 mln).</div>
-              </li>
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Nawet zapytanie bez filtra</strong> wygrywa przy 50× (+21% do +31%), bo dane
-                  pogrupowane według przewoźnika zajmują o 30% mniej miejsca.</div>
+                <div><strong>Próg opłacalności:</strong> ok. 2 mln wierszy (5×) dla DuckDB i Polars z ciepłym
+                  cache; Polars z zimnym dopiero ok. 8 mln (20×).</div>
               </li>
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- SLAJD 9: FinOps -->
-      <section class="slide" data-slide="9" data-title="FinOps i I/O">
+      <!-- SLAJD 8: I/O, sortowanie i koszt -->
+      <section class="slide" data-slide="8" data-title="I/O i koszt">
         <div class="slide-header">
-          <div class="slide-subtitle">09. FinOps / I/O</div>
-          <h1 class="slide-title">Korzyści kosztowe z podziału danych</h1>
+          <div class="slide-subtitle">08. I/O i FinOps</div>
+          <h1 class="slide-title">Mniej czytanych danych, głównie dzięki sortowaniu</h1>
         </div>
 
         <div class="grid-layout">
-          <div class="tile col-7" style="grid-column: span 7;">
-            <div class="tile-title"><span>Bajty przeskanowane na zapytanie (z metadanych Parquet)</span></div>
-            <img class="figure" src="figures/io_scanned_mb.png" alt="Przeskanowane MB">
-            <p class="text-body" style="margin-top:0.75rem;">
-              Liczymy skompresowane fragmenty kolumn, które silnik musi przeczytać po przycięciu plików i grup
-              wierszy. Zapytania z filtrem na przewoźnika czytają od <strong>79% do 99% mniej danych</strong>.
-              Zapytanie kontrolne bez filtra czyta prawie tyle samo (tylko 3% mniej).
+          <div class="tile col-6">
+            <div class="tile-title"><span>Ile danych czyta zapytanie dla DL</span><span class="tag tag-blue">34 MB</span>
+            </div>
+            <div class="bar-row">
+              <span>A – plik płaski</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%; background:#94a3b8;"></div></div>
+              <span class="bar-value">3,97 MB</span>
+            </div>
+            <div class="bar-row">
+              <span>A′ – posortowany</span>
+              <div class="bar-track"><div class="bar-fill" style="width:12.6%; background:var(--accent-amber);"></div></div>
+              <span class="bar-value">0,50 MB</span>
+            </div>
+            <div class="bar-row">
+              <span>B – partycje</span>
+              <div class="bar-track"><div class="bar-fill" style="width:8.1%; background:var(--accent-blue);"></div></div>
+              <span class="bar-value">0,32 MB</span>
+            </div>
+            <p class="text-body" style="margin-top:1rem;">
+              Sam plik posortowany po przewoźniku czyta o <strong>87%</strong> mniej, partycje o
+              <strong>92%</strong>. Przy 20 mln wierszy różnica maleje do 90% vs 91%.
             </p>
           </div>
 
-          <div class="tile col-5" style="grid-column: span 5;">
-            <div class="tile-title"><span>Koszt w modelu pay-per-scan</span><span class="tag tag-amber">Athena: $5 /
+          <div class="tile col-6">
+            <div class="tile-title"><span>Koszt 100 tys. zapytań / mies.</span><span class="tag tag-amber">Athena: $5 /
                 TB</span></div>
             <div class="data-table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Skala</th>
-                    <th>Skan A</th>
-                    <th>Skan B</th>
-                    <th>100 tys. zapytań / mies.</th>
+                    <th>Dane</th>
+                    <th>A</th>
+                    <th>A′</th>
+                    <th>B</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td class="mono">1×</td>
-                    <td class="mono">3,79 MB</td>
-                    <td class="mono">0,33 MB</td>
-                    <td class="mono">$1,81 → $0,16</td>
+                    <td>rzeczywiste (34 MB)</td>
+                    <td class="mono">$1,89</td>
+                    <td class="mono">$0,24</td>
+                    <td class="mono">$0,15</td>
                   </tr>
                   <tr>
-                    <td class="mono">5×</td>
-                    <td class="mono">19,1 MB</td>
-                    <td class="mono">1,16 MB</td>
-                    <td class="mono">$9,12 → $0,56</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">20×</td>
-                    <td class="mono">76,5 MB</td>
-                    <td class="mono">4,48 MB</td>
-                    <td class="mono">$36,47 → $2,14</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">50×</td>
-                    <td class="mono">191,2 MB</td>
-                    <td class="mono">10,9 MB</td>
-                    <td class="mono" style="color:var(--accent-emerald);">$91,18 → $5,20</td>
+                    <td>50× (20 mln wierszy)</td>
+                    <td class="mono">$95,45</td>
+                    <td class="mono">$9,29</td>
+                    <td class="mono" style="color:var(--accent-emerald);">$8,58</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p class="text-body" style="margin-top:0.75rem;">
-              Redukcja skanu wynosi <strong>91–94%</strong> niezależnie od skali, więc rachunek maleje ~17×. W
-              przeciwieństwie do latencji ta metryka nie zależy od cache ani od dysku.
-            </p>
+            <p class="note" style="margin-top:0.75rem;">Liczone ze stopek plików Parquet, więc wynik nie zależy od
+              cache ani od maszyny. Zapytanie bez filtra nic nie zyskuje.</p>
           </div>
 
           <div class="tile col-12">
-            <div class="tile-title"><span>Gdzie jeszcze widać oszczędności</span></div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1rem;">
-              <div
-                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
-                <strong style="color:var(--accent-emerald);">Storage (S3 / dysk)</strong>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
-                  Przy 50× dane partycjonowane zajmują 1 074 MB zamiast 1 537 MB (−30%), bo dane pogrupowane według
-                  przewoźnika lepiej się kompresują. Snappy: CSV 50,7 MB → Parquet 33,6 MB.
-                </p>
+            <div class="mini-grid">
+              <div class="mini-card">
+                <strong style="color:var(--accent-emerald);">Co dają katalogi ponad sortowanie</strong>
+                <p>Pominięte partycje nie wymagają czytania stopek, uprawnienia nadaje się per prefiks, a partycję
+                  usuwa się razem z folderem.</p>
               </div>
-              <div
-                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
-                <strong style="color:var(--accent-blue);">Compute / I/O</strong>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
-                  Mniej bajtów z dysku lub sieci oznacza krótszy czas klastra (Spark, EMR, Redshift Spectrum) i
-                  mniejszy transfer między strefami. Przy 50× zapytanie trwa 3–8× krócej.
-                </p>
+              <div class="mini-card">
+                <strong style="color:var(--accent-amber);">Koszt: dysk</strong>
+                <p>Partycje zajmują 4–12% więcej miejsca niż plik płaski, bo każdy z 38 plików ma własne słowniki
+                  i stopkę.</p>
               </div>
-              <div
-                style="background:rgba(255,255,255,0.02); padding:1rem; border-radius:10px; border:1px solid var(--border-color);">
-                <strong style="color:var(--accent-rose);">Ryzyko: liczba plików</strong>
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.4rem;">
-                  Na S3 każdy plik to osobne żądanie GET (płatne, 10–50 ms opóźnienia). Zbyt drobny klucz
-                  (<span class="mono">airport</span>: 420 plików po ~80 KB) zjada oszczędności, a silnik czytający
-                  wszystkie stopki (Polars) płaci za każdą partycję.
-                </p>
+              <div class="mini-card">
+                <strong style="color:var(--accent-rose);">Ryzyko: za drobny klucz</strong>
+                <p>Klucz <span class="mono">airport</span> dałby 420 plików po ~80 KB. Na S3 każdy plik to osobne,
+                  płatne żądanie.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SLAJD 10: Wykorzystanie AI / źródła wyników -->
-      <section class="slide" data-slide="10" data-title="Źródła wyników i AI">
+      <!-- SLAJD 9: Wykorzystanie AI -->
+      <section class="slide" data-slide="9" data-title="Wykorzystanie AI">
         <div class="slide-header">
-          <div class="slide-subtitle">10. Wykorzystanie AI</div>
+          <div class="slide-subtitle">09. Wykorzystanie AI</div>
           <h1 class="slide-title">Prezentacja z surowych wyników, nie z narracji notatnika</h1>
         </div>
 
         <div class="grid-layout">
-          <div class="tile col-4">
-            <div class="tile-title">
-              <span>1. Ekstrakcja czystych wyników</span>
+          <div class="tile col-12">
+            <div class="lifecycle-grid">
+              <div class="step-card">
+                <div class="step-number">1 · WYNIKI</div>
+                <p class="text-body" style="margin-top:0.25rem;">Notatnik zapisuje tabele do CSV i jednego pliku TXT
+                  bez komentarzy (<span class="mono">presentation/results/</span>).</p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">2 · WYKRESY</div>
+                <p class="text-body" style="margin-top:0.25rem;">Te same komórki eksportują wykresy PNG
+                  (<span class="mono">presentation/figures/</span>).</p>
+              </div>
+              <div class="step-card">
+                <div class="step-number">3 · PREZENTACJA</div>
+                <p class="text-body" style="margin-top:0.25rem;">Z pliku TXT, notatnika i wykresów powstaje
+                  prezentacja HTML z eksportem do PDF.</p>
+              </div>
             </div>
-            <p class="text-body">
-              Notatnik <span class="mono">02_cleaning_partitioning.ipynb</span> zapisuje tabele (lejki, partycje,
-              I/O, A/B, FinOps) do CSV w <span class="mono">data/benchmark/</span> oraz do jednego pliku
-              <span class="mono">data/cleaning_benchmark_results.txt</span> — bez narracji czy komentarzy
-              (kopia: <span class="mono">presentation/results/</span>).
-            </p>
-            <span class="tag tag-emerald">Czysty plik TXT + CSV</span>
-          </div>
-
-          <div class="tile col-4">
-            <div class="tile-title">
-              <span>2. Wykresy jako artefakty</span>
-            </div>
-            <p class="text-body">
-              Te same komórki eksportują PNG do <span class="mono">presentation/figures/</span>
-              (heatmapy zysku, latencja A/B, skanowane MB, sezonowość cech). Slajdy tylko je osadzają.
-            </p>
-            <span class="tag tag-blue">figures/*.png</span>
-          </div>
-
-          <div class="tile col-4">
-            <div class="tile-title">
-              <span>3. Generacja prezentacji</span>
-            </div>
-            <p class="text-body">
-              Na podstawie załączonego pliku wyników, notatnika i wykresów przygotowana została prezentacja HTML
-              z możliwością eksportu do PDF — ten sam wzorzec co w Milestone 1
-              (<span class="mono">profiling_results.txt</span>).
-            </p>
-            <span class="tag tag-purple">HTML → PDF</span>
           </div>
 
           <div class="tile col-12">
             <div class="tile-title">
               <span>Treść prompta (analogicznie do Milestone 1)</span>
-              <span class="tag tag-amber">Prompt Inżynieryjny</span>
+              <span class="tag tag-amber">Prompt</span>
             </div>
-            <div
-              style="background:rgba(0,0,0,0.35); border:1px solid var(--border-highlight); border-radius:8px; padding:1.2rem; font-family:var(--font-mono); font-size:0.83rem; line-height:1.6; color:var(--text-main); white-space:pre-wrap; word-break:break-word;">
-              Na podstawie załączonego pliku txt z surowymi wynikami czyszczenia, partycjonowania i benchmarku A/B
-              zbioru BTS Flight Delays oraz notatnika Jupyter przygotowana została prezentacja HTML, z możliwością
-              eksportu do PDF.</div>
+            <div class="code-box" style="white-space:pre-wrap; border-color:var(--border-highlight); font-size:0.85rem;">Na podstawie załączonego pliku txt z surowymi wynikami czyszczenia, partycjonowania i benchmarku A/B zbioru BTS Flight Delays oraz notatnika Jupyter przygotowana została prezentacja HTML, z możliwością eksportu do PDF.</div>
           </div>
         </div>
       </section>
 
-      <!-- SLAJD 11: Wnioski -->
-      <section class="slide" data-slide="11" data-title="Wnioski i trudności">
+      <!-- SLAJD 10: Wnioski -->
+      <section class="slide" data-slide="10" data-title="Wnioski">
         <div class="slide-header">
-          <div class="slide-subtitle">11. Podsumowanie</div>
-          <h1 class="slide-title">Wnioski, trudności i zaskoczenia</h1>
+          <div class="slide-subtitle">10. Podsumowanie</div>
+          <h1 class="slide-title">Wnioski i trudności</h1>
         </div>
 
         <div class="grid-layout">
@@ -1573,56 +1344,42 @@ GROUP BY month ORDER BY month</div>
             <ul class="custom-list">
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>Czyszczenie usuwa tylko 0,28% wierszy,</strong> ale to te same wiersze, które zaburzają
-                  średnie (np. 53 h opóźnienia na lot).</div>
+                <div><strong>Czyszczenie usuwa tylko 0,28% wierszy,</strong> ale właśnie te, które psują średnie.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>Partycjonowanie to zakład o wzorzec zapytań i wolumen.</strong> Opłaca się, gdy większość
-                  zapytań filtruje po kluczu, a partycje mają co najmniej dziesiątki MB.</div>
+                <div><strong>Partycje zmniejszają czytane dane o ~90%,</strong> ale prawie tyle samo daje
+                  posortowanie jednego pliku.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>Na 34 MB główny zysk to mniej przeskanowanych bajtów (−92%)</strong>, a nie czas. Przy
-                  20 mln wierszy zysk czasu sięga 69–88% dla zapytania z zadania.</div>
-              </li>
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-emerald);"></div>
-                <div><strong>Silnik ma znaczenie:</strong> ten sam układ danych daje DuckDB zysk, a Polars stratę
-                  na małych danych.</div>
+                <div><strong>Na 34 MB czas zależy od silnika</strong> (DuckDB zyskuje, Polars traci). Przy
+                  milionach wierszy partycje wygrywają.</div>
               </li>
             </ul>
           </div>
 
           <div class="tile col-6">
-            <div class="tile-title"><span>Co było trudne / co nas zaskoczyło</span></div>
+            <div class="tile-title"><span>Co było trudne</span></div>
             <ul class="custom-list">
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Brak znaczników czasu w BTS:</strong> <span class="mono">trip_duration</span> i <span
-                    class="mono">pickup_hour</span> trzeba było przełożyć na odpowiedniki miesięczne.</div>
+                <div><strong>Brak znaczników czasu w BTS:</strong> cechy z zadania przenieśliśmy na miesiące.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Pomiary bez kontroli cache są bezwartościowe:</strong> po pierwszym odczycie plik leży w
-                  RAM. Dopiero <span class="mono">posix_fadvise</span> i wyłączenie cache DuckDB dały wiarygodny tryb
-                  cold.</div>
+                <div><strong>Cache:</strong> bez usuwania plików z pamięci i wyłączenia cache DuckDB pomiary na
+                  zimno nic nie znaczą.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Pierwsze powielenie danych było fałszywe:</strong> kopie wierszy obok siebie skompresowały
-                  się do ułamka rozmiaru (50× danych dało 4× większy plik). Kopie musiały iść całymi blokami.</div>
+                <div><strong>Powielanie danych:</strong> identyczne kopie obok siebie kompresują się lepiej i dawały
+                  fałszywe „−30% miejsca”. Wykrył to dopiero posortowany plik kontrolny.</div>
               </li>
               <li>
                 <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Pułapka pyarrow:</strong> nieposortowane dane dały 276 drobnych grup wierszy i
-                  zbiór większy o 22%.</div>
-              </li>
-              <li>
-                <div class="bullet-dot" style="background:var(--accent-amber);"></div>
-                <div><strong>Zmiana nazw lotnisk w czasie</strong> (Las Vegas: McCarran → Harry Reid) sprawiła, że
-                  <span class="mono">first()</span> zwracał różne wyniki dla A i B. Kontrola zgodności wyników to
-                  wykryła.</div>
+                <div><strong>Pułapka pyarrow:</strong> nieposortowane dane dały 276 grup wierszy i zbiór większy o
+                  22%.</div>
               </li>
             </ul>
           </div>

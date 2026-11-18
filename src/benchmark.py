@@ -2,12 +2,14 @@ import os
 import random
 import shutil
 import time
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence
 
 import duckdb
 import polars as pl
+import pyarrow as pa
 import pyarrow.parquet as pq
 from polars.testing import assert_frame_equal
 
@@ -15,7 +17,24 @@ PARTITION_COLUMN = "carrier"
 ATHENA_USD_PER_TB = 5.0
 
 LAYOUT_FLAT = "A: flat file (full scan)"
+LAYOUT_SORTED = "A': flat file sorted by carrier (row-group pruning)"
 LAYOUT_PARTITIONED = "B: partitioned (pruning)"
+ALL_LAYOUTS = (LAYOUT_FLAT, LAYOUT_SORTED, LAYOUT_PARTITIONED)
+
+COLD_CACHE_SUPPORTED = hasattr(os, "posix_fadvise")
+DEFAULT_CACHE_MODES = ("warm", "cold") if COLD_CACHE_SUPPORTED else ("warm",)
+
+_REPLICATION_KEY_COLUMNS = {"year", "month", "quarter"}
+_DUCKDB_INT_TYPES = {
+    pa.int8(): "TINYINT",
+    pa.int16(): "SMALLINT",
+    pa.int32(): "INTEGER",
+    pa.int64(): "BIGINT",
+    pa.uint8(): "UTINYINT",
+    pa.uint16(): "USMALLINT",
+    pa.uint32(): "UINTEGER",
+    pa.uint64(): "UBIGINT",
+}
 
 
 @dataclass(frozen=True)
@@ -167,6 +186,11 @@ def size_mb(path: Path) -> float:
 
 
 def evict_page_cache(path: Path) -> None:
+    if not COLD_CACHE_SUPPORTED:
+        raise RuntimeError(
+            "Cold-cache runs need os.posix_fadvise, which is Linux-only. "
+            "On macOS run the benchmark with cache_modes=('warm',)."
+        )
     os.sync()
     for f in parquet_files(path):
         fd = os.open(f, os.O_RDONLY)
@@ -243,13 +267,17 @@ def run_ab_benchmark(
     layouts: Dict[str, Path],
     scenarios: Sequence[Scenario],
     engines: Sequence[str] = ("duckdb", "polars"),
-    cache_modes: Sequence[str] = ("warm", "cold"),
+    cache_modes: Optional[Sequence[str]] = None,
     repeats: int = 15,
     warmup: int = 2,
     seed: int = 42,
     extra: Optional[Dict[str, object]] = None,
 ) -> pl.DataFrame:
     """Runs every (scenario, engine, cache mode) on all layouts, interleaving layouts in random order per repeat."""
+    if cache_modes is None:
+        cache_modes = DEFAULT_CACHE_MODES
+        if not COLD_CACHE_SUPPORTED:
+            warnings.warn("os.posix_fadvise is not available on this OS: running warm-cache measurements only.")
     rng = random.Random(seed)
     rows = []
     for scenario in scenarios:
@@ -329,21 +357,71 @@ def summarize(runs: pl.DataFrame, by: Sequence[str] = ("scenario", "engine", "ca
     )
 
 
+def storage_info(path: Path) -> Dict[str, float]:
+    files = parquet_files(path)
+    metas = [pq.ParquetFile(f).metadata for f in files]
+    return {
+        "size_mb": size_mb(path),
+        "files": len(files),
+        "row_groups": sum(m.num_row_groups for m in metas),
+        "rows": sum(m.num_rows for m in metas),
+    }
+
+
+def _io_rows(layouts: Dict[str, Path], scenarios: Sequence[Scenario]) -> pl.DataFrame:
+    return pl.DataFrame(
+        [{"scenario": s.name, "layout": name, **scanned_bytes(path, s)} for s in scenarios for name, path in layouts.items()]
+    )
+
+
+def _with_io_reduction(df: pl.DataFrame, by: Sequence[str] = ("scenario",)) -> pl.DataFrame:
+    by = list(by)
+    flat = df.filter(pl.col("layout") == LAYOUT_FLAT).select(*by, A_scanned_mb="scanned_mb")
+    return (
+        df.join(flat, on=by, how="left", maintain_order="left")
+        .with_columns(
+            io_reduction_pct=(1 - pl.col("scanned_mb") / pl.col("A_scanned_mb")) * 100,
+            usd_per_1k_queries=pl.col("scanned_mb") / 1024**2 * ATHENA_USD_PER_TB * 1000,
+        )
+        .drop("A_scanned_mb")
+    )
+
+
 def io_report(layouts: Dict[str, Path], scenarios: Sequence[Scenario]) -> pl.DataFrame:
-    rows = []
-    for scenario in scenarios:
-        for name, path in layouts.items():
-            rows.append({"scenario": scenario.name, "layout": name, **scanned_bytes(path, scenario)})
-    df = pl.DataFrame(rows)
-    flat = df.filter(pl.col("layout") == LAYOUT_FLAT).select("scenario", A_scanned_mb="scanned_mb")
-    return df.join(flat, on="scenario").with_columns(
-        io_reduction_pct=(1 - pl.col("scanned_mb") / pl.col("A_scanned_mb")) * 100,
-        usd_per_1k_queries=pl.col("scanned_mb") / 1024**2 * ATHENA_USD_PER_TB * 1000,
-    ).drop("A_scanned_mb")
+    return _with_io_reduction(_io_rows(layouts, scenarios))
+
+
+def remove_layouts(paths) -> None:
+    for path in map(Path, paths):
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink(missing_ok=True)
+
+
+def _replicated_select(source_parquet: Path, scale: int, distinct_copies: bool) -> str:
+    sources = ", ".join(f"'{source_parquet}'" for _ in range(scale))
+    if not distinct_copies:
+        return f"SELECT * FROM read_parquet([{sources}])"
+    shifted = []
+    for field in pq.read_schema(source_parquet):
+        if field.name in _REPLICATION_KEY_COLUMNS:
+            continue
+        col = f'"{field.name}"'
+        if field.type in _DUCKDB_INT_TYPES:
+            shifted.append(f"CAST({col} + file_index AS {_DUCKDB_INT_TYPES[field.type]}) AS {col}")
+        elif pa.types.is_floating(field.type):
+            shifted.append(f"{col} + file_index * 1e-6 AS {col}")
+    return f"SELECT * REPLACE ({', '.join(shifted)}) FROM read_parquet([{sources}])"
 
 
 def build_scaled_copies(
-    source_parquet: Path, out_dir: Path, scale: int, row_group_size: int = 122_880
+    source_parquet: Path,
+    out_dir: Path,
+    scale: int,
+    row_group_size: int = 122_880,
+    layouts: Sequence[str] = ALL_LAYOUTS,
+    distinct_copies: bool = True,
 ) -> Dict[str, Path]:
     """Replicates the clean dataset `scale` times with DuckDB (streaming, out-of-core) into both layouts.
 
@@ -351,22 +429,29 @@ def build_scaled_copies(
     interleaving duplicate rows would let RLE/dictionary encoding compress them away.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
-    flat = out_dir / f"flat_x{scale}.parquet"
-    part = out_dir / f"partitioned_x{scale}"
-    if part.exists():
-        shutil.rmtree(part)
-    flat.unlink(missing_ok=True)
-    sources = ", ".join(f"'{source_parquet}'" for _ in range(scale))
-    select = f"SELECT * FROM read_parquet([{sources}])"
+    paths = {
+        LAYOUT_FLAT: out_dir / f"flat_x{scale}.parquet",
+        LAYOUT_SORTED: out_dir / f"sorted_x{scale}.parquet",
+        LAYOUT_PARTITIONED: out_dir / f"partitioned_x{scale}",
+    }
+    remove_layouts(paths.values())
+    part = paths[LAYOUT_PARTITIONED]
+    select = _replicated_select(source_parquet, scale, distinct_copies)
+    options = f"FORMAT parquet, COMPRESSION snappy, ROW_GROUP_SIZE {row_group_size}"
     with duckdb.connect() as con:
-        con.execute(
-            f"COPY ({select}) TO '{flat}' (FORMAT parquet, COMPRESSION snappy, ROW_GROUP_SIZE {row_group_size})"
-        )
-        con.execute(
-            f"COPY ({select}) TO '{part}' "
-            f"(FORMAT parquet, COMPRESSION snappy, ROW_GROUP_SIZE {row_group_size}, PARTITION_BY ({PARTITION_COLUMN}))"
-        )
-    return {LAYOUT_FLAT: flat, LAYOUT_PARTITIONED: part}
+        if LAYOUT_FLAT in layouts:
+            con.execute(f"COPY ({select}) TO '{paths[LAYOUT_FLAT]}' ({options})")
+        if LAYOUT_PARTITIONED in layouts or LAYOUT_SORTED in layouts:
+            con.execute(f"COPY ({select}) TO '{part}' ({options}, PARTITION_BY ({PARTITION_COLUMN}))")
+        if LAYOUT_SORTED in layouts:
+            columns = ", ".join(f'"{c}"' for c in pq.read_schema(source_parquet).names)
+            con.execute(
+                f"COPY (SELECT {columns} FROM read_parquet('{part}/*/*.parquet', hive_partitioning = true)) "
+                f"TO '{paths[LAYOUT_SORTED]}' ({options})"
+            )
+    if LAYOUT_PARTITIONED not in layouts:
+        remove_layouts([part])
+    return {name: paths[name] for name in ALL_LAYOUTS if name in layouts}
 
 
 def run_scale_experiment(
@@ -379,12 +464,33 @@ def run_scale_experiment(
 ) -> Dict[str, pl.DataFrame]:
     runs, io, storage = [], [], []
     for scale in scales:
-        layouts = build_scaled_copies(source_parquet, out_dir, scale)
-        rows = pq.ParquetFile(layouts[LAYOUT_FLAT]).metadata.num_rows
-        storage.extend(
-            {"scale": scale, "rows": rows, "layout": name, "size_mb": size_mb(path), "files": len(parquet_files(path))}
-            for name, path in layouts.items()
-        )
-        io.append(io_report(layouts, scenarios).with_columns(scale=pl.lit(scale)))
-        runs.append(run_ab_benchmark(layouts, scenarios, repeats=repeats, extra={"scale": scale}, **kwargs))
+        built = build_scaled_copies(source_parquet, out_dir, scale)
+        try:
+            storage.extend({"scale": scale, "layout": name, **storage_info(path)} for name, path in built.items())
+            io.append(io_report(built, scenarios).with_columns(scale=pl.lit(scale)))
+            runs.append(run_ab_benchmark(built, scenarios, repeats=repeats, extra={"scale": scale}, **kwargs))
+        finally:
+            remove_layouts(built.values())
     return {"runs": pl.concat(runs), "io": pl.concat(io), "storage": pl.DataFrame(storage)}
+
+
+def run_storage_experiment(
+    source_parquet: Path,
+    out_dir: Path,
+    scales: Sequence[int],
+    scenarios: Sequence[Scenario],
+    distinct_copies: bool = True,
+) -> Dict[str, pl.DataFrame]:
+    io, storage = [], []
+    for scale in scales:
+        for group in ((LAYOUT_FLAT,), (LAYOUT_PARTITIONED, LAYOUT_SORTED)):
+            built = build_scaled_copies(source_parquet, out_dir, scale, layouts=group, distinct_copies=distinct_copies)
+            try:
+                storage.extend({"scale": scale, "layout": name, **storage_info(path)} for name, path in built.items())
+                io.append(_io_rows(built, scenarios).with_columns(scale=pl.lit(scale)))
+            finally:
+                remove_layouts(built.values())
+    return {
+        "storage": pl.DataFrame(storage),
+        "io": _with_io_reduction(pl.concat(io), by=("scale", "scenario")),
+    }

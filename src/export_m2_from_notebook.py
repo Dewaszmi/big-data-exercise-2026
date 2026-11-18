@@ -89,6 +89,8 @@ def _polars_html_table_to_df(rows: List[List[str]]) -> pl.DataFrame:
                 values.append(None)
             elif len(cell) >= 2 and cell[0] == '"' and cell[-1] == '"':
                 values.append(cell[1:-1])
+            elif cell.startswith('"') and cell.endswith("…"):
+                values.append(cell[1:])
             else:
                 values.append(cell)
         # pad / trim if polars truncated with an ellipsis column
@@ -116,7 +118,7 @@ def export_from_notebook(notebook_path: Path | None = None) -> dict[str, Path]:
         "cleaning_funnel": table(8, 1),
         "feature_verification": table(13, 0),
         "feature_worked_example_dl_atl": table(13, 1),
-        "partition_key_candidates": table(15, 0),
+        "partition_key_candidates": table(16, 0),
         "partitions": table(19, 0),
         "io_report": table(23, 0),
         "summary_real": table(25, 0),
@@ -125,6 +127,10 @@ def export_from_notebook(notebook_path: Path | None = None) -> dict[str, Path]:
         "summary_scale_task_query": table(34, 0),
         "finops_scale": table(37, 0),
         "csv_vs_parquet": table(39, 0),
+        "layout_storage_real": table(41, 0),
+        "io_sorted_vs_partitioned": table(41, 1),
+        "replication_storage": table(42, 0),
+        "replication_io": table(43, 0),
     }
 
     # Drop the ellipsis column Polars injects when the HTML preview is too wide.
